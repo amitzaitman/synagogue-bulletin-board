@@ -1,0 +1,35 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper function to check if user is super user (authenticated)
+    function isSuperUser() {
+      return request.auth != null;
+    }
+
+    // Public read access for all synagogue data (anyone can view)
+    // Only authenticated super users can write
+
+    match /synagogues/{synagogueId} {
+      allow read: if true;
+      allow create: if isSuperUser();
+      allow update, delete: if isSuperUser();
+    }
+
+    match /synagogues/{synagogueId}/events/{eventId} {
+      allow read: if true;
+      allow write: if isSuperUser();
+    }
+
+    match /synagogues/{synagogueId}/columns/{columnId} {
+      allow read: if true;
+      allow write: if isSuperUser();
+    }
+
+    match /synagogues/{synagogueId}/settings/{settingId} {
+      allow read: if true;
+      allow write: if isSuperUser();
+    }
+  }
+}
