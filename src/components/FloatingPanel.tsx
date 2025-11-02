@@ -9,23 +9,25 @@ interface FloatingPanelProps {
 
 const FloatingPanel: React.FC<FloatingPanelProps> = ({ children, title, isOpen }) => {
   const [isDragging, setIsDragging] = useState(false);
-  const [isResizing, setIsResizing] = useState(false);
-  const [size, setSize] = useState({ width: 400, height: 500 });
   const [position, setPosition] = useState({ 
     x: window.innerWidth / 2 - 200,
     y: window.innerHeight / 2 - 250
   });
   const [offset, setOffset] = useState({ x: 0, y: 0 });
-  const [initialMousePos, setInitialMousePos] = useState({ x: 0, y: 0 });
   const panelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (isOpen && panelRef.current) {
-      const rect = panelRef.current.getBoundingClientRect();
-      setPosition({
-        x: window.innerWidth / 2 - rect.width / 2,
-        y: window.innerHeight / 2 - rect.height / 2,
-      });
+      // Use setTimeout to ensure the panel has been rendered with content
+      setTimeout(() => {
+        const rect = panelRef.current?.getBoundingClientRect();
+        if (rect) {
+          setPosition({
+            x: window.innerWidth / 2 - rect.width / 2,
+            y: window.innerHeight / 2 - rect.height / 2,
+          });
+        }
+      }, 0);
     }
   }, [isOpen]);
 
@@ -50,46 +52,22 @@ const FloatingPanel: React.FC<FloatingPanelProps> = ({ children, title, isOpen }
 
   const handleMouseUp = () => {
     setIsDragging(false);
-    setIsResizing(false);
-  };
-
-  const handleResizeMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
-    e.stopPropagation();
-    setIsResizing(true);
-    setInitialMousePos({ x: e.clientX, y: e.clientY });
-  };
-
-  const handleResizeMouseMove = (e: MouseEvent) => {
-    if (isResizing && panelRef.current) {
-      const newWidth = size.width + (e.clientX - initialMousePos.x);
-      const newHeight = size.height + (e.clientY - initialMousePos.y);
-      setSize({
-        width: newWidth > 200 ? newWidth : 200,
-        height: newHeight > 200 ? newHeight : 200,
-      });
-      setInitialMousePos({ x: e.clientX, y: e.clientY });
-    }
   };
 
   useEffect(() => {
     if (isDragging) {
       window.addEventListener('mousemove', handleMouseMove);
       window.addEventListener('mouseup', handleMouseUp);
-    } else if (isResizing) {
-      window.addEventListener('mousemove', handleResizeMouseMove);
-      window.addEventListener('mouseup', handleMouseUp);
     } else {
       window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mousemove', handleResizeMouseMove);
       window.removeEventListener('mouseup', handleMouseUp);
     }
 
     return () => {
       window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mousemove', handleResizeMouseMove);
       window.removeEventListener('mouseup', handleMouseUp);
     };
-  }, [isDragging, isResizing, offset]);
+  }, [isDragging, offset]);
 
   if (!isOpen) {
     return null;
@@ -99,7 +77,7 @@ const FloatingPanel: React.FC<FloatingPanelProps> = ({ children, title, isOpen }
     <div
       ref={panelRef}
       className="fixed bg-stone-100/90 backdrop-blur-lg shadow-2xl rounded-lg z-40 overflow-hidden"
-      style={{ top: position.y, left: position.x, width: size.width, height: size.height }}
+      style={{ top: position.y, left: position.x }}
     >
       <div
         className="p-2 bg-stone-200/90 rounded-t-lg cursor-move"
@@ -107,13 +85,9 @@ const FloatingPanel: React.FC<FloatingPanelProps> = ({ children, title, isOpen }
       >
         <span className="font-bold text-stone-800">{title}</span>
       </div>
-      <div className="overflow-y-auto" style={{ height: `calc(${size.height}px - 40px)` }}>
+      <div className="p-4 overflow-y-auto max-h-[70vh]">
         {children}
       </div>
-      <div
-        className="absolute bottom-0 right-0 w-4 h-4 cursor-nwse-resize"
-        onMouseDown={handleResizeMouseDown}
-      />
     </div>
   );
 };

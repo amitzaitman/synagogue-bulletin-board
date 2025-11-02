@@ -33,3 +33,6 @@ dist-ssr
 .claude/settings.local.json
 .firebase/hosting.ZGlzdA.cache
 src/components/ColumnView.tsx.backup
+todo
+todo.md
+todo.md
