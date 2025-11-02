@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { db } from '../firebase';
 import { collection, getDocs, doc, getDoc } from 'firebase/firestore';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { getSelectedSynagogue, saveSelectedSynagogue } from '../utils/offlineStorage';
 
 interface Synagogue {
   id: string;
@@ -12,10 +13,17 @@ interface Synagogue {
 const SynagogueList: React.FC = () => {
   const [synagogues, setSynagogues] = useState<Synagogue[]>([]);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchSynagogues = async () => {
       try {
+        const selectedSynagogue = getSelectedSynagogue();
+        if (selectedSynagogue) {
+          navigate(`/${selectedSynagogue}`);
+          return;
+        }
+
         const querySnapshot = await getDocs(collection(db, 'synagogues'));
         const synagoguesPromises = querySnapshot.docs.map(async (docSnap) => {
           const settingsDoc = await getDoc(doc(db, 'synagogues', docSnap.id, 'settings', 'board'));
@@ -38,7 +46,7 @@ const SynagogueList: React.FC = () => {
     };
 
     fetchSynagogues();
-  }, []);
+  }, [navigate]);
 
   if (loading) {
     return (
@@ -65,6 +73,11 @@ const SynagogueList: React.FC = () => {
                 to={linkTo}
                 key={synagogue.id}
                 className="block bg-white p-6 rounded-lg shadow-md hover:shadow-xl transition transform hover:-translate-y-1"
+                onClick={() => {
+                  if (synagogue.slug) {
+                    saveSelectedSynagogue(synagogue.slug);
+                  }
+                }}
               >
                 <h2 className="text-2xl font-semibold text-indigo-900 mb-2">{synagogue.name}</h2>
                 {synagogue.slug && (

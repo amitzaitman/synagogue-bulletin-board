@@ -48,7 +48,7 @@ const SuperUserLogin: React.FC = () => {
   return (
     <div className="flex items-center justify-center h-screen bg-gray-100">
       <div className="w-full max-w-md p-8 bg-white rounded-lg shadow-md" style={{ direction: 'rtl' }}>
-        <h2 className="text-2xl font-bold text-center mb-6">כניסת מנהל על</h2>
+        <h2 className="text-2xl font-bold text-center mb-6">כניסת מנהל </h2>
         {error && (
           <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
             {error}

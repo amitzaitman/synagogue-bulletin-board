@@ -9,14 +9,12 @@ interface Synagogue {
   id: string;
   name: string;
   slug?: string;
-  password?: string;
 }
 
 interface EditingSynagogue {
   id: string;
   name: string;
   slug: string;
-  password: string;
 }
 
 const ManageSynagogues: React.FC = () => {
@@ -46,7 +44,6 @@ const ManageSynagogues: React.FC = () => {
           id: docSnap.id,
           name: settingsData.boardTitle || docSnap.data().name || docSnap.id,
           slug: settingsData.slug,
-          password: settingsData.password,
         };
       });
 
@@ -73,7 +70,6 @@ const ManageSynagogues: React.FC = () => {
       id: synagogue.id,
       name: synagogue.name,
       slug: synagogue.slug || '',
-      password: synagogue.password || '',
     });
   };
 
@@ -85,7 +81,6 @@ const ManageSynagogues: React.FC = () => {
       await updateDoc(doc(db, 'synagogues', editingSynagogue.id, 'settings', 'board'), {
         boardTitle: editingSynagogue.name,
         slug: editingSynagogue.slug,
-        password: editingSynagogue.password,
       });
 
       // Update main document
@@ -182,15 +177,7 @@ const ManageSynagogues: React.FC = () => {
                 />
               </div>
 
-              <div>
-                <label className="block text-sm font-medium mb-2">סיסמת עריכה</label>
-                <input
-                  type="text"
-                  value={editingSynagogue.password}
-                  onChange={(e) => setEditingSynagogue({ ...editingSynagogue, password: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                />
-              </div>
+
 
               <div className="flex gap-3 pt-4">
                 <button
@@ -239,7 +226,7 @@ const ManageSynagogues: React.FC = () => {
                   <tr>
                     <th className="px-6 py-3 text-right text-sm font-bold text-indigo-900">שם הקהילה</th>
                     <th className="px-6 py-3 text-right text-sm font-bold text-indigo-900">כתובת URL</th>
-                    <th className="px-6 py-3 text-right text-sm font-bold text-indigo-900">סיסמה</th>
+
                     <th className="px-6 py-3 text-center text-sm font-bold text-indigo-900">פעולות</th>
                   </tr>
                 </thead>
@@ -250,9 +237,7 @@ const ManageSynagogues: React.FC = () => {
                       <td className="px-6 py-4 text-sm text-gray-600" dir="ltr">
                         {synagogue.slug || synagogue.id}
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-600">
-                        {synagogue.password ? '••••••' : '(לא מוגדר)'}
-                      </td>
+
                       <td className="px-6 py-4 text-center">
                         <div className="flex justify-center gap-2">
                           <Link

@@ -92,7 +92,6 @@ export interface DateSpecificZmanim {
 export interface BoardSettings {
   boardTitle?: string; // Title of the board
   slug?: string; // URL-friendly slug for the synagogue (e.g., "beit-knesset-hagadol")
-  password?: string; // Password for edit access (set by super user)
   hasCompletedSetup?: boolean; // True if user has completed initial setup (seen welcome dialog)
   manualEventOrdering?: boolean; // If true, events are ordered manually; if false, auto-sorted by time
   scale: number;

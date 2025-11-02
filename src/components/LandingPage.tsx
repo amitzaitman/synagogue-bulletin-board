@@ -66,7 +66,7 @@ const LandingPage: React.FC = () => {
         <div className="mb-8 text-center">
           <h1 className="text-5xl font-bold mb-4 text-indigo-900">ברוכים הבאים</h1>
           <h2 className="text-2xl mb-4 text-indigo-700">ללוח הקהילה</h2>
-          <p className="text-lg text-gray-700">בחר קהילה לצפייה בלוח</p>
+          <p className="text-lg text-gray-700">בחר לוח קהילה לצפייה</p>
         </div>
 
         {synagogues.length === 0 ? (

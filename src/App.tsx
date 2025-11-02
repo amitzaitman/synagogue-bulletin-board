@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { db } from './firebase';
-import { HashRouter as Router, Routes, Route, useParams, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { db, auth } from './firebase';
+import { HashRouter as Router, Routes, Route, useParams, useNavigate, Navigate } from 'react-router-dom';
 import { doc, getDoc, collection, getDocs } from 'firebase/firestore';
 import SuperUserLogin from './components/SuperUserLogin';
 import BoardView from './components/BoardView';
@@ -11,21 +11,20 @@ import { useBoardSettings } from './hooks/useBoardSettings';
 import { useZmanim } from './hooks/useZmanim';
 import { useLastSync } from './hooks/useLastSync';
 import LandingPage from './components/LandingPage';
-import PasswordDialog from './components/dialogs/PasswordDialog';
 import ManageSynagogues from './components/ManageSynagogues';
 import { EventItem, Column, BoardSettings } from './types';
+import { saveSelectedSynagogue } from './utils/offlineStorage';
 
-const BoardPage = () => {
+const BoardPage: React.FC = () => {
   const { slugOrId } = useParams<{ slugOrId: string }>();
   const navigate = useNavigate();
 
   const [synagogueId, setSynagogueId] = useState<string | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
-  const [showPasswordDialog, setShowPasswordDialog] = useState(false);
   const [loading, setLoading] = useState(true);
 
   // Original state from hooks
-  const { events: originalEvents, saveEvents, lastRefresh } = useEvents(synagogueId || undefined);
+  const { events: originalEvents, saveEvents, lastRefresh, loading: eventsLoading } = useEvents(synagogueId || undefined);
   const { columns: originalColumns, saveColumns } = useColumns(synagogueId || undefined);
   const { settings: originalSettings, saveSettings } = useBoardSettings(synagogueId || undefined);
 
@@ -88,28 +87,20 @@ const BoardPage = () => {
 
   const handleSwitchToAdmin = () => {
     if (isEditMode) {
-      // Exiting edit mode, prompt to save changes
-      if (window.confirm("Do you want to save your changes?")) {
-        handleSaveChanges();
-      } else {
-        handleCancelChanges();
-      }
+      // Exiting edit mode
+      handleCancelChanges();
     } else {
-      // Entering edit mode
-      setShowPasswordDialog(true);
+      // Entering edit mode - allow anyone to access
+      setIsEditMode(true);
+      // Copy original state to temporary state
+      setEvents(originalEvents);
+      setColumns(originalColumns);
+      setSettings(originalSettings);
     }
   };
 
-  const handlePasswordSuccess = () => {
-    setShowPasswordDialog(false);
-    setIsEditMode(true);
-    // Copy original state to temporary state
-    setEvents(originalEvents);
-    setColumns(originalColumns);
-    setSettings(originalSettings);
-  };
-
   const handleSaveChanges = () => {
+    // Save all temporary state to database
     saveEvents(events);
     saveColumns(columns);
     saveSettings(settings);
@@ -124,21 +115,17 @@ const BoardPage = () => {
   };
 
   const handleBackToHome = () => {
+    saveSelectedSynagogue('');
     navigate('/');
   };
 
-  if (loading || !synagogueId) {
+  if (loading || !synagogueId || eventsLoading || !originalSettings) {
     return <div className="flex items-center justify-center h-screen">טוען...</div>;
   }
 
   return (
     <>
-      <PasswordDialog
-        isOpen={showPasswordDialog}
-        onClose={() => setShowPasswordDialog(false)}
-        onSuccess={handlePasswordSuccess}
-        correctPassword={originalSettings.password || ''}
-      />
+
       <div className="h-screen overflow-hidden flex items-stretch p-4 md:p-6" style={{ backgroundColor: settings.mainBackgroundColor }}>
         <div className="flex-grow flex flex-col min-w-0">
           <div className="w-full h-full rounded-2xl shadow-[inset_0_6px_12px_rgba(80,50,20,0.12)] backdrop-blur-lg relative" style={{ backgroundColor: settings.boardBackgroundColor }}>
@@ -160,7 +147,6 @@ const BoardPage = () => {
               lastRefresh={lastRefresh}
               lastSyncTime={lastSyncTime}
               isOnline={isOnline}
-              canEdit={!!originalSettings.password}
             />
           </div>
         </div>
@@ -170,12 +156,27 @@ const BoardPage = () => {
 };
 
 const App: React.FC = () => {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [authInitialized, setAuthInitialized] = useState(false);
+
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged(user => {
+      setIsAuthenticated(!!user);
+      setAuthInitialized(true);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  if (!authInitialized) {
+    return <div className="flex items-center justify-center h-screen">טוען...</div>;
+  }
+
   return (
     <Router>
       <OnlineStatus />
       <Routes>
         <Route path="/super-login" element={<SuperUserLogin />} />
-        <Route path="/manage" element={<ManageSynagogues />} />
+        <Route path="/manage" element={isAuthenticated ? <ManageSynagogues /> : <Navigate to="/super-login" />} />
         <Route path="/:slugOrId" element={<BoardPage />} />
         <Route path="/" element={<LandingPage />} />
       </Routes>

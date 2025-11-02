@@ -18,7 +18,7 @@ export const defaultEvents: EventItem[] = [
 ];
 
 // Create offline storage for events
-const eventsStorage = createOfflineStorage<EventItem[]>({
+const eventsStorage = createOfflineStorage<EventItem[]>({ 
   localStorageKey: 'boardEvents',
   firebaseCollectionPath: (synagogueId) => `synagogues/${synagogueId}/events`,
   defaultValue: defaultEvents,
@@ -26,19 +26,23 @@ const eventsStorage = createOfflineStorage<EventItem[]>({
 
 export const useEvents = (synagogueId: string | undefined) => {
   const [events, setEvents] = useState<EventItem[]>([]);
+  const [loading, setLoading] = useState(true);
   const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
 
   useEffect(() => {
     if (!synagogueId) {
-      setEvents(defaultEvents);
+      setEvents([]); // No synagogueId, so no specific events
+      setLoading(false); // Nothing to load
       return;
     }
 
+    setLoading(true); // Start loading for a valid synagogueId
     const unsubscribe = eventsStorage.setupFirebaseListener(synagogueId, (serverEvents) => {
       const sorted = serverEvents.sort((a, b) => a.order - b.order);
       setEvents(sorted);
       eventsStorage.saveToLocal(sorted);
       setLastRefresh(new Date());
+      setLoading(false); // Finished loading
     });
 
     return () => unsubscribe();
@@ -55,5 +59,6 @@ export const useEvents = (synagogueId: string | undefined) => {
     }
   }, [synagogueId]);
 
-  return { events, saveEvents, lastRefresh };
+  return { events, saveEvents, lastRefresh, loading };
 };
+

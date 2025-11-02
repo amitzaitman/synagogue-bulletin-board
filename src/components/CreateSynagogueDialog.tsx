@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { db } from '../firebase';
 import { doc, setDoc, collection } from 'firebase/firestore';
 import { BoardSettings } from '../types';
+import { saveSelectedSynagogue } from '../utils/offlineStorage';
 
 interface CreateSynagogueDialogProps {
   isOpen: boolean;
@@ -95,6 +96,10 @@ const CreateSynagogueDialog: React.FC<CreateSynagogueDialogProps> = ({
         doc(db, 'synagogues', synagogueId, 'columns', 'weekdays-1'),
         weekdaysColumn
       );
+
+      // Store settings in local storage for immediate offline access
+      localStorage.setItem('boardSettings', JSON.stringify(defaultSettings));
+      saveSelectedSynagogue(slug || synagogueId);
 
       // Reset form
       setSynagogueName('');
