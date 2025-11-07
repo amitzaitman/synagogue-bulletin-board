@@ -19,12 +19,12 @@ service cloud.firestore {
 
     match /synagogues/{synagogueId}/events/{eventId} {
       allow read: if true;
-      allow write: if isAuthenticated();
+      allow write: if true; // Anyone can update board settings
     }
 
     match /synagogues/{synagogueId}/columns/{columnId} {
       allow read: if true;
-      allow write: if isAuthenticated();
+      allow write: if true; // Anyone can update board settings
     }
 
     match /synagogues/{synagogueId}/settings/{settingId} {

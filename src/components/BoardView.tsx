@@ -8,6 +8,7 @@ import AddColumnDialog from './dialogs/AddColumnDialog';
 import FloatingPanel from './FloatingPanel';
 import EditModePanel from './EditModePanel';
 import { useColumnEditor } from '../hooks/useColumnEditor';
+import { useInactivity } from '../hooks/useInactivity';
 import { calculateAllEventTimes } from '../utils/timeCalculations';
 import { saveWithBackup, createRecoveryPoint } from '../utils/dataBackup';
 
@@ -33,7 +34,6 @@ interface BoardViewProps {
   saveSettings: (settings: BoardSettings) => void;
   onSwitchToAdmin: () => void;
   onSaveChanges: () => void;
-  onCancelChanges: () => void;
   onBackToHome: () => void;
   isEditMode: boolean;
   zmanimData: ZmanimData | null;
@@ -48,7 +48,7 @@ const BoardView: React.FC<BoardViewProps> = (props) => {
     const {
         events, columns, settings,
         saveEvents, saveColumns, saveSettings,
-        onSwitchToAdmin, onSaveChanges, onCancelChanges, onBackToHome, isEditMode,
+        onSwitchToAdmin, onSaveChanges, onBackToHome, isEditMode,
         zmanimData, zmanimLoading, zmanimError,
         lastSyncTime, isOnline
     } = props;
@@ -72,7 +72,7 @@ const BoardView: React.FC<BoardViewProps> = (props) => {
     const [newColumnType, setNewColumnType] = useState<'shabbat' | 'weekdays' | 'moed'>('shabbat');
     const [newColumnDate, setNewColumnDate] = useState('');
 
-    const { editingColumn, startEditing, cancelEdit, setEditTitle, setEditColumnType, setEditSpecificDate, saveEdit } = useColumnEditor(columns, saveColumns);
+    const { editingColumn, startEditing, setEditTitle, setEditColumnType, setEditSpecificDate, saveEdit } = useColumnEditor(columns, saveColumns);
     const containerRef = useRef<HTMLDivElement>(null);
     const mainContentRef = useRef<HTMLElement>(null);
 
@@ -80,6 +80,9 @@ const BoardView: React.FC<BoardViewProps> = (props) => {
     const [titleScale, setTitleScale] = useState(1);
     const CONTENT_DESIGN_WIDTH = 1280;
     const TITLE_DESIGN_WIDTH = 1536;
+
+    // Inactivity detection - hide buttons when user is inactive
+    const { isActive } = useInactivity({ timeoutMs: 3000 }); // 3 seconds timeout
 
     const calculateScales = useCallback(() => {
         if (containerRef.current) {
@@ -128,9 +131,8 @@ const BoardView: React.FC<BoardViewProps> = (props) => {
             setInlineAddEvent(null);
             setDraggingItemId(null);
             setDraggingColumnId(null);
-            cancelEdit();
         }
-    }, [isEditMode, cancelEdit]);
+    }, [isEditMode]);
     
     const handleAddNewColumn = () => {
         setShowAddColumnDialog(true);
@@ -156,13 +158,6 @@ const BoardView: React.FC<BoardViewProps> = (props) => {
         };
         saveColumns([...columns, newColumn]);
 
-        setShowAddColumnDialog(false);
-        setNewColumnTitle('');
-        setNewColumnType('shabbat');
-        setNewColumnDate('');
-    };
-
-    const handleCancelNewColumn = () => {
         setShowAddColumnDialog(false);
         setNewColumnTitle('');
         setNewColumnType('shabbat');
@@ -324,7 +319,7 @@ const BoardView: React.FC<BoardViewProps> = (props) => {
                 </div>
                 <div className="flex-1 text-center">
                     <h1 className="font-title text-[5.5em] leading-tight whitespace-nowrap drop-shadow-md" style={{ color: displaySettings.mainTitleColor, fontSize: `${5.5 * (displaySettings.mainTitleSize / 100)}em`}}>
-                        {displaySettings.boardTitle || 'בית הכנסת - גבעת החי״ש'}
+                        {displaySettings.boardTitle}
                     </h1>
                 </div>
                 <div className="flex-1 text-left flex flex-col items-end gap-2">
@@ -332,8 +327,9 @@ const BoardView: React.FC<BoardViewProps> = (props) => {
                 </div>
             </header>
             
-            {!isEditMode && (
-                <div className="fixed bottom-4 left-4 z-40 opacity-20 hover:opacity-100 transition-opacity duration-300">
+            {/* Floating buttons - hidden when inactive */}
+            {!isEditMode && isActive && (
+                <div className="fixed bottom-4 left-4 z-40 opacity-50 hover:opacity-100 transition-opacity duration-300">
                     <div className="flex flex-col gap-2">
                         <button onClick={onBackToHome} className="p-3 bg-white/90 rounded-full shadow-lg hover:bg-amber-100 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2">
                             <HomeIcon />
@@ -402,17 +398,6 @@ const BoardView: React.FC<BoardViewProps> = (props) => {
                             setDisplaySettings(newSettings);
                             saveSettings(newSettings);
                         }}
-                        onSaveChanges={() => {
-                            onSaveChanges();
-                            setShowSettingsPanel(false);
-                            setActiveSection(undefined);
-                        }}
-                        onCancelChanges={() => {
-                            setDisplaySettings(settings);
-                            saveSettings(settings);
-                            setShowSettingsPanel(false);
-                            setActiveSection(undefined);
-                        }}
                         zmanimData={zmanimData}
                         zmanimLoading={zmanimLoading}
                         zmanimError={zmanimError}
@@ -433,7 +418,7 @@ const BoardView: React.FC<BoardViewProps> = (props) => {
                         }
                     }}
                     onAddColumn={handleAddNewColumn}
-                    onExit={onCancelChanges}
+                    onExit={onSaveChanges}
                 />
             )}
             
@@ -446,7 +431,12 @@ const BoardView: React.FC<BoardViewProps> = (props) => {
                     setNewColumnType={setNewColumnType}
                     setNewColumnDate={setNewColumnDate}
                     onSave={handleSaveNewColumn}
-                    onCancel={handleCancelNewColumn}
+                    onCancel={() => {
+                        setShowAddColumnDialog(false);
+                        setNewColumnTitle('');
+                        setNewColumnType('shabbat');
+                        setNewColumnDate('');
+                    }}
                 />
             )}
         </div>

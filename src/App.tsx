@@ -86,17 +86,12 @@ const BoardPage: React.FC = () => {
   }, [slugOrId, navigate]);
 
   const handleSwitchToAdmin = () => {
-    if (isEditMode) {
-      // Exiting edit mode
-      handleCancelChanges();
-    } else {
-      // Entering edit mode - allow anyone to access
-      setIsEditMode(true);
-      // Copy original state to temporary state
-      setEvents(originalEvents);
-      setColumns(originalColumns);
-      setSettings(originalSettings);
-    }
+    // Entering edit mode - allow anyone to access
+    setIsEditMode(true);
+    // Copy original state to temporary state
+    setEvents(originalEvents);
+    setColumns(originalColumns);
+    setSettings(originalSettings);
   };
 
   const handleSaveChanges = () => {
@@ -104,13 +99,6 @@ const BoardPage: React.FC = () => {
     saveEvents(events);
     saveColumns(columns);
     saveSettings(settings);
-    setIsEditMode(false);
-  };
-
-  const handleCancelChanges = () => {
-    setEvents(originalEvents);
-    setColumns(originalColumns);
-    setSettings(originalSettings);
     setIsEditMode(false);
   };
 
@@ -138,7 +126,6 @@ const BoardPage: React.FC = () => {
               saveSettings={isEditMode ? setSettings : saveSettings}
               onSwitchToAdmin={handleSwitchToAdmin}
               onSaveChanges={handleSaveChanges}
-              onCancelChanges={handleCancelChanges}
               onBackToHome={handleBackToHome}
               isEditMode={isEditMode}
               zmanimData={zmanimData}

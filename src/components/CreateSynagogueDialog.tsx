@@ -82,7 +82,7 @@ const CreateSynagogueDialog: React.FC<CreateSynagogueDialogProps> = ({
 
       const weekdaysColumn = {
         id: 'weekdays-1',
-        title: 'ימים רגילים',
+        title: 'ימות השבוע',
         order: 1,
         columnType: 'weekdays',
       };

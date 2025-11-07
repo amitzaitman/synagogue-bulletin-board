@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { doc, setDoc } from 'firebase/firestore';
 import { db } from '../firebase';
@@ -36,7 +35,7 @@ export const defaultSettings: BoardSettings = {
 // Create offline storage for settings
 const settingsStorage = createOfflineStorage<BoardSettings>({
   localStorageKey: 'boardSettings',
-  firebasePath: (synagogueId) => `synagogues/${synagogueId}`,
+  firebasePath: (synagogueId) => `synagogues/${synagogueId}/settings/board`,
   defaultValue: defaultSettings,
   deserialize: (data) => {
     const loaded = { ...defaultSettings, ...(data || {}) };
