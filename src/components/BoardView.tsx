@@ -14,7 +14,7 @@ import { saveWithBackup, createRecoveryPoint } from '../utils/dataBackup';
 
 const SettingsIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066 2.573c-.94-1.543.826 3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+    <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
     <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
   </svg>
 );
@@ -76,13 +76,22 @@ const BoardView: React.FC<BoardViewProps> = (props) => {
     const containerRef = useRef<HTMLDivElement>(null);
     const mainContentRef = useRef<HTMLElement>(null);
 
+    const { isActive } = useInactivity({ timeoutMs: 3000 }); // 3 seconds timeout
+    
+    const handleOpenSettings = (section: string) => {
+        setActiveSection(section);
+        setShowSettingsPanel(true);
+    };
+    
+    const handleCloseSettings = () => {
+        setShowSettingsPanel(false);
+        setActiveSection(undefined);
+    };
+
     const [contentScale, setContentScale] = useState(1);
     const [titleScale, setTitleScale] = useState(1);
     const CONTENT_DESIGN_WIDTH = 1280;
     const TITLE_DESIGN_WIDTH = 1536;
-
-    // Inactivity detection - hide buttons when user is inactive
-    const { isActive } = useInactivity({ timeoutMs: 3000 }); // 3 seconds timeout
 
     const calculateScales = useCallback(() => {
         if (containerRef.current) {
@@ -312,7 +321,7 @@ const BoardView: React.FC<BoardViewProps> = (props) => {
     const finalContentScale = displaySettings.scale * contentScale;
         
     return (
-        <div ref={containerRef} className="relative h-full flex flex-col overflow-hidden">
+        <div ref={containerRef} className="relative h-full flex flex-col overflow-hidden" style={{ backgroundColor: displaySettings.mainBackgroundColor }}>
             <header className="flex-shrink-0 flex justify-between items-start p-4 md:p-6 pb-2" style={{ fontSize: `${titleScale * 16}px` }}>
                 <div className="flex-1 text-right flex flex-col items-start gap-2">
                     <ZmanimInfo zmanimData={zmanimData} loading={zmanimLoading} error={zmanimError} settings={displaySettings} />
@@ -386,10 +395,7 @@ const BoardView: React.FC<BoardViewProps> = (props) => {
             {isEditMode && (
                 <FloatingPanel 
                     isOpen={showSettingsPanel} 
-                    onClose={() => {
-                        setShowSettingsPanel(false);
-                        setActiveSection(undefined);
-                    }} 
+                    onClose={handleCloseSettings} 
                     title="עריכת לוח"
                 >
                     <EditPanel
@@ -413,8 +419,7 @@ const BoardView: React.FC<BoardViewProps> = (props) => {
                     onSave={onSaveChanges}
                     onOpenSettings={(section) => {
                         if (section) {
-                            setActiveSection(section);
-                            setShowSettingsPanel(true);
+                            handleOpenSettings(section);
                         }
                     }}
                     onAddColumn={handleAddNewColumn}

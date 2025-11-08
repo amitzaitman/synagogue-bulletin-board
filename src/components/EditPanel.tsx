@@ -122,6 +122,48 @@ interface EditPanelProps {
   activeSection?: string;
 }
 
+const themes = {
+  light: {
+    prayerColor: '#78350f',
+    classColor: '#115e59',
+    freeTextColor: '#44403c',
+    columnTitleColor: '#78350f',
+    mainTitleColor: '#92400e',
+    highlightColor: '#fef3c7',
+    mainBackgroundColor: '#E6DFD4',
+    boardBackgroundColor: 'rgba(248, 244, 237, 0.85)',
+    columnBackgroundColor: 'rgba(251, 247, 241, 0.75)',
+    clockBackgroundColor: 'rgba(244, 238, 228, 0.6)',
+    zmanimBackgroundColor: 'rgba(244, 238, 228, 0.6)',
+  },
+  dark: {
+    prayerColor: '#fde68a', // amber-200
+    classColor: '#99f6e4', // teal-200
+    freeTextColor: '#d6d3d1', // stone-300
+    columnTitleColor: '#fde68a', // amber-200
+    mainTitleColor: '#fed7aa', // amber-300
+    highlightColor: '#451a03', // amber-950
+    mainBackgroundColor: '#292524', // stone-800
+    boardBackgroundColor: 'rgba(41, 37, 36, 0.85)',
+    columnBackgroundColor: 'rgba(68, 64, 60, 0.75)',
+    clockBackgroundColor: 'rgba(87, 83, 78, 0.6)',
+    zmanimBackgroundColor: 'rgba(87, 83, 78, 0.6)',
+  },
+  brightBlue: {
+    prayerColor: '#075985', // cyan-800
+    classColor: '#0e7490', // cyan-700
+    freeTextColor: '#334155', // slate-700
+    columnTitleColor: '#075985', // cyan-800
+    mainTitleColor: '#082f49', // cyan-950
+    highlightColor: '#e0f2fe', // light blue-100
+    mainBackgroundColor: '#f0f9ff', // light blue-50
+    boardBackgroundColor: 'rgba(224, 242, 254, 0.85)', // light blue-100
+    columnBackgroundColor: 'rgba(186, 230, 253, 0.75)', // light blue-200
+    clockBackgroundColor: 'rgba(125, 211, 252, 0.6)', // light blue-300
+    zmanimBackgroundColor: 'rgba(125, 211, 252, 0.6)', // light blue-300
+  }
+};
+
 const EditPanel: React.FC<EditPanelProps> = React.forwardRef<{
   scrollToSection: (section: string) => void;
 }, EditPanelProps>(({ settings, onSave, activeSection }, ref) => {
@@ -137,7 +179,6 @@ const EditPanel: React.FC<EditPanelProps> = React.forwardRef<{
   }));
 
   const handleSettingChange = (field: keyof BoardSettings, value: any) => {
-    // Special handling for manualEventOrdering - ask for confirmation
     if (field === 'manualEventOrdering') {
       const isEnablingManual = value === true;
       const message = isEnablingManual
@@ -149,8 +190,14 @@ const EditPanel: React.FC<EditPanelProps> = React.forwardRef<{
       }
     }
 
-    // Directly save the changes
-    const newSettings = { ...settings, [field]: value };
+    let newSettings = { ...settings, [field]: value };
+
+    if (field === 'theme' && (value === 'light' || value === 'dark' || value === 'brightBlue')) {
+      newSettings = { ...newSettings, ...themes[value] };
+    } else if (field.includes('Color')) {
+      newSettings.theme = 'custom';
+    }
+
     onSave(newSettings);
   };
 
@@ -183,6 +230,19 @@ const EditPanel: React.FC<EditPanelProps> = React.forwardRef<{
                 placeholder="בית הכנסת - גבעת החי״ש"
                 dir="rtl"
               />
+            </div>
+            <div>
+              <label className={labelClass}>ערכת נושא</label>
+              <select
+                value={settings.theme}
+                onChange={(e) => handleSettingChange('theme', e.target.value)}
+                className={inputClass}
+              >
+                <option value="light">בהיר</option>
+                <option value="dark">כהה</option>
+                <option value="brightBlue">כחול בהיר</option>
+                <option value="custom" disabled>מותאם אישית</option>
+              </select>
             </div>
             <div>
               <label className="flex items-center justify-between cursor-pointer">

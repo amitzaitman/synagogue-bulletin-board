@@ -7,18 +7,18 @@ interface FloatingPanelProps {
   onClose: () => void;
 }
 
-const FloatingPanel: React.FC<FloatingPanelProps> = ({ children, title, isOpen }) => {
+const FloatingPanel: React.FC<FloatingPanelProps> = ({ children, title, isOpen, onClose }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [position, setPosition] = useState({ 
     x: window.innerWidth / 2 - 200,
     y: window.innerHeight / 2 - 250
   });
   const [offset, setOffset] = useState({ x: 0, y: 0 });
+  const [isMinimized, setIsMinimized] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (isOpen && panelRef.current) {
-      // Use setTimeout to ensure the panel has been rendered with content
       setTimeout(() => {
         const rect = panelRef.current?.getBoundingClientRect();
         if (rect) {
@@ -80,16 +80,23 @@ const FloatingPanel: React.FC<FloatingPanelProps> = ({ children, title, isOpen }
       style={{ top: position.y, left: position.x }}
     >
       <div
-        className="p-2 bg-stone-200/90 rounded-t-lg cursor-move"
+        className="p-2 bg-stone-200/90 rounded-t-lg cursor-move flex justify-between items-center"
         onMouseDown={handleMouseDown}
       >
         <span className="font-bold text-stone-800">{title}</span>
+        <div className="flex gap-2">
+          <button onClick={() => setIsMinimized(!isMinimized)} className="w-6 h-6 bg-yellow-400 rounded-full hover:bg-yellow-500"></button>
+          <button onClick={onClose} className="w-6 h-6 bg-red-500 rounded-full hover:bg-red-600"></button>
+        </div>
       </div>
-      <div className="p-4 overflow-y-auto max-h-[70vh]">
-        {children}
-      </div>
+      {!isMinimized && (
+        <div className="p-4 overflow-y-auto max-h-[70vh]">
+          {children}
+        </div>
+      )}
     </div>
   );
 };
 
 export default FloatingPanel;
+

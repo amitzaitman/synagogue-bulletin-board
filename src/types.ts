@@ -98,6 +98,7 @@ export interface BoardSettings {
   mainTitleSize: number; // as a percentage of base size
   columnTitleSize: number; // as a percentage of base size
   eventTextScale: number; // as a percentage of base size
+  theme: 'light' | 'dark' | 'brightBlue' | 'custom';
   // Colors for text elements
   prayerColor: string;
   classColor: string;

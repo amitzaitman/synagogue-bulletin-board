@@ -13,6 +13,7 @@ export const defaultSettings: BoardSettings = {
   mainTitleSize: 100, // percentage
   columnTitleSize: 100, // percentage
   eventTextScale: 100, // percentage
+  theme: 'light',
   // Colors for text elements
   prayerColor: '#78350f', // tailwind amber-900
   classColor: '#115e59', // tailwind teal-800

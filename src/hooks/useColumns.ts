@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { doc, writeBatch } from 'firebase/firestore';
 import { db } from '../firebase';
-import isEqual from 'fast-deep-equal';
+
 import { Column } from '../types';
 import { createOfflineStorage } from '../utils/offlineStorage';
 
@@ -53,8 +53,6 @@ export const useColumns = (synagogueId: string | undefined) => {
     if (!synagogueId) return;
 
     setColumns(prev => {
-      if (isEqual(prev, newColumns)) return prev;
-
       // 1. Save to localStorage immediately (instant, works offline)
       columnsStorage.saveToLocal(newColumns);
 
