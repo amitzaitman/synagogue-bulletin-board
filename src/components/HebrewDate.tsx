@@ -7,7 +7,11 @@ const removeNikud = (text: string): string => {
     return text.replace(/[\u0591-\u05BD\u05BF-\u05C7]/g, '');
 };
 
-const HebrewDate: React.FC = () => {
+interface HebrewDateProps {
+    scale?: number; // Scale factor for proportional sizing
+}
+
+const HebrewDate: React.FC<HebrewDateProps> = ({ scale = 1 }) => {
     const [hebrewDate, setHebrewDate] = useState('');
 
     useEffect(() => {
@@ -27,8 +31,18 @@ const HebrewDate: React.FC = () => {
 
     if (!hebrewDate) return null;
 
+    const baseFontSize = 16; // Base font size in pixels
+    const scaledFontSize = baseFontSize * scale;
+
     return (
-        <div className="text-[0.5em] text-stone-600 leading-tight mt-1" aria-label={`התאריך העברי היום: ${hebrewDate}`}>
+        <div 
+            className="text-stone-600 leading-tight" 
+            style={{ 
+                fontSize: `${1.5* scaledFontSize}px`,
+                marginTop: `${scale * 4}px`
+            }}
+            aria-label={`התאריך העברי היום: ${hebrewDate}`}
+        >
             {hebrewDate}
         </div>
     );

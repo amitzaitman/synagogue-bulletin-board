@@ -270,10 +270,6 @@ const EditPanel: React.FC<EditPanelProps> = React.forwardRef<{
               <h3 className="text-sm font-semibold">גודל גופנים</h3>
             </div>
             <div>
-              <label className={labelClass}>גודל כללי: {Math.round(settings.scale * 100)}%</label>
-              <input type="range" min="0.5" max="2" step="0.05" value={settings.scale} onChange={(e) => handleSettingChange('scale', parseFloat(e.target.value))} className="w-full" />
-            </div>
-            <div>
               <label className={labelClass}>כותרת ראשית: {settings.mainTitleSize}%</label>
               <input type="range" min="50" max="200" step="5" value={settings.mainTitleSize} onChange={(e) => handleSettingChange('mainTitleSize', parseInt(e.target.value))} className="w-full" />
             </div>
@@ -281,9 +277,8 @@ const EditPanel: React.FC<EditPanelProps> = React.forwardRef<{
               <label className={labelClass}>כותרת עמודה: {settings.columnTitleSize}%</label>
               <input type="range" min="50" max="200" step="5" value={settings.columnTitleSize} onChange={(e) => handleSettingChange('columnTitleSize', parseInt(e.target.value))} className="w-full" />
             </div>
-            <div>
-              <label className={labelClass}>טקסט אירועים: {settings.eventTextScale}%</label>
-              <input type="range" min="50" max="200" step="5" value={settings.eventTextScale} onChange={(e) => handleSettingChange('eventTextScale', parseInt(e.target.value))} className="w-full" />
+            <div className="text-sm text-stone-500 italic">
+              גודל הטקסט הכללי מותאם אוטומטית כדי למנוע הסתרת תוכן
             </div>
           </div>
         )}

@@ -327,7 +327,7 @@ const EventRow: React.FC<EventRowProps> = ({ event, displayTime, isLast, isEditM
     const handleRowClick = () => isEditMode && onEdit(event.id);
     const handleButtonAction = (e: React.MouseEvent, action: () => void) => { e.stopPropagation(); action(); };
 
-    const textScale = (settings.eventTextScale || 100) / 100;
+    const textScale = 1; // Text scale is now automatically calculated
 
     const content = event.type === 'freeText' ? (
         <div className="flex-grow">
@@ -367,13 +367,14 @@ const EventRow: React.FC<EventRowProps> = ({ event, displayTime, isLast, isEditM
           onDrop={(e) => onDrop(e, event)}
           onClick={handleRowClick}
         >
-            {isEditMode && <div className="px-2"><DragHandleIcon /></div>}
+            {isEditMode && <div style={{ paddingLeft: '0.5em', paddingRight: '0.5em' }}><DragHandleIcon /></div>}
             {content}
             {isEditMode && (
-                <div className="absolute top-1/2 -translate-y-1/2 -left-3 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="absolute top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col" style={{ left: '-0.75em', gap: '0.25em' }}>
                     <button 
                         onClick={(e) => handleButtonAction(e, () => onToggleHighlight(event.id))} 
-                        className={`p-1.5 rounded-full ${event.isHighlighted ? 'bg-amber-400 text-white' : 'bg-stone-200 text-stone-600'} hover:bg-amber-300`}
+                        className={`rounded-full ${event.isHighlighted ? 'bg-amber-400 text-white' : 'bg-stone-200 text-stone-600'} hover:bg-amber-300`}
+                        style={{ padding: '0.375em' }}
                         title={event.isHighlighted ? 'בטל הדגשה' : 'הדגש'}
                     >
                         <StarIcon filled={!!event.isHighlighted} />
@@ -452,7 +453,8 @@ const ColumnView: React.FC<ColumnViewProps> = (props) => {
     return (
         <div className="h-full flex flex-col">
             <header
-                className={`text-center py-1 flex flex-col items-center justify-center gap-1`}
+                className={`text-center flex flex-col items-center justify-center`}
+                style={{ paddingTop: '0.25em', paddingBottom: '0.25em', gap: '0.25em' }}
                 draggable={isEditMode && !!onColumnDragStart && !editingColumn}
                 onDragStart={isEditMode && onColumnDragStart && !editingColumn ? (e) => onColumnDragStart(e, column.id) : undefined}
                 onDragEnd={isEditMode && onColumnDragEnd ? onColumnDragEnd : undefined}

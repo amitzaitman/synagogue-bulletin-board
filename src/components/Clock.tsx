@@ -5,9 +5,10 @@ import { BoardSettings } from '../types';
 
 interface ClockProps {
   settings: BoardSettings;
+  scale?: number; // Scale factor for proportional sizing
 }
 
-const Clock: React.FC<ClockProps> = ({ settings }) => {
+const Clock: React.FC<ClockProps> = ({ settings, scale = 1 }) => {
   const [time, setTime] = useState(new Date());
 
   useEffect(() => {
@@ -20,10 +21,20 @@ const Clock: React.FC<ClockProps> = ({ settings }) => {
     };
   }, []);
 
+  const baseFontSize = 16; // Base font size in pixels
+  const scaledFontSize = baseFontSize * scale;
+
   return (
-    <div className="inline-flex flex-col items-center text-[3em] leading-none font-mono font-bold text-stone-800 tracking-wider p-2 rounded-lg shadow-sm border border-black/5" style={{ backgroundColor: settings.clockBackgroundColor }}>
+    <div 
+      className="inline-flex flex-col items-center leading-none font-mono font-bold text-stone-800 tracking-wider rounded-lg shadow-sm border border-black/5" 
+      style={{ 
+        backgroundColor: settings.clockBackgroundColor,
+        padding: `${scale * 8}px`,
+        fontSize: `${3 * scaledFontSize}px`
+      }}
+    >
       <div>{time.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })}</div>
-      <HebrewDate />
+      <HebrewDate scale={scale} />
     </div>
   );
 };

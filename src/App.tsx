@@ -114,9 +114,21 @@ const BoardPage: React.FC = () => {
   return (
     <>
 
-      <div className="h-screen overflow-hidden flex items-stretch p-4 md:p-6" style={{ backgroundColor: settings.mainBackgroundColor }}>
-        <div className="flex-grow flex flex-col min-w-0">
-          <div className="w-full h-full rounded-2xl shadow-[inset_0_6px_12px_rgba(80,50,20,0.12)] backdrop-blur-lg relative" style={{ backgroundColor: settings.boardBackgroundColor }}>
+      <div className="h-screen w-screen overflow-hidden flex items-center justify-center" style={{ backgroundColor: settings.mainBackgroundColor }}>
+        <div 
+          id="board-container"
+          className="rounded-2xl shadow-[inset_0_6px_12px_rgba(80,50,20,0.12)] backdrop-blur-lg relative" 
+          style={{ 
+            backgroundColor: settings.boardBackgroundColor, 
+            aspectRatio: '16/9',
+            width: '100vw',
+            height: 'calc(100vw * 9 / 16)',
+            maxWidth: 'calc(100vh * 16 / 9)',
+            maxHeight: '100vh',
+            transformOrigin: 'center center'
+          }}
+        >
+          <div className="w-full h-full" style={{ padding: '2%' }}>
             <BoardView
               events={isEditMode ? events : originalEvents}
               columns={isEditMode ? columns : originalColumns}

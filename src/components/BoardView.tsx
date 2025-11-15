@@ -12,15 +12,15 @@ import { useInactivity } from '../hooks/useInactivity';
 import { calculateAllEventTimes } from '../utils/timeCalculations';
 import { saveWithBackup, createRecoveryPoint } from '../utils/dataBackup';
 
-const SettingsIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+const SettingsIcon = ({ size = 24 }: { size?: number }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
     <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
     <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
   </svg>
 );
 
-const HomeIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+const HomeIcon = ({ size = 24 }: { size?: number }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
     <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
   </svg>
 );
@@ -90,22 +90,92 @@ const BoardView: React.FC<BoardViewProps> = (props) => {
 
     const [contentScale, setContentScale] = useState(1);
     const [titleScale, setTitleScale] = useState(1);
-    const CONTENT_DESIGN_WIDTH = 1280;
-    const TITLE_DESIGN_WIDTH = 1536;
+    // Fixed design size for consistent scaling across all screens
+    const DESIGN_WIDTH = 1920;  // 16:9 design width
+    const headerRef = useRef<HTMLElement>(null);
 
     const calculateScales = useCallback(() => {
-        if (containerRef.current) {
-            const effectiveWidth = containerRef.current.clientWidth;
-            if (effectiveWidth > 0) {
-                setContentScale(effectiveWidth / CONTENT_DESIGN_WIDTH);
-            }
+        if (!containerRef.current || !mainContentRef.current) {
+            return;
         }
-        setTitleScale(window.innerWidth / TITLE_DESIGN_WIDTH);
-    }, []);
+
+        const containerWidth = containerRef.current.clientWidth;
+        const containerHeight = containerRef.current.clientHeight;
+        
+        if (containerWidth <= 0 || containerHeight <= 0) {
+            return;
+        }
+        
+        // Calculate scale based on container dimensions relative to design size (1920x1080)
+        // Since container maintains 16:9, we can use either dimension - they'll give the same ratio
+        // Use width for consistency - this ensures identical appearance across all screens
+        let finalScale = containerWidth / DESIGN_WIDTH;
+        
+        // Verify content fits with this scale and adjust ONLY if absolutely necessary
+        // This preserves identical appearance while preventing overflow
+        const headerHeight = headerRef.current?.clientHeight || 0;
+        const availableHeight = containerHeight - headerHeight;
+        
+        // Get content metrics
+        const maxEventsInColumn = Math.max(...columns.map(col => 
+            events.filter(e => e.columnId === col.id).length
+        ), 1);
+        
+        // Base measurements in em units (will be converted to pixels with scale)
+        const columnHeaderHeight = 3; // em units for column title
+        const columnPadding = 2; // em units for padding
+        const estimatedRowHeight = 4; // em units per row
+        const mainContentPadding = 2; // em units for main content padding
+        
+        const baseFontSize = 16; // pixels
+        
+        // Calculate total content height needed (in em)
+        const totalContentHeightEm = columnHeaderHeight + columnPadding + (maxEventsInColumn * estimatedRowHeight) + mainContentPadding;
+        
+        // Check if content fits with the base scale
+        const testContentHeight = totalContentHeightEm * baseFontSize * finalScale;
+        if (testContentHeight > availableHeight && availableHeight > 0) {
+            // Only adjust if content doesn't fit - calculate minimum scale needed
+            const heightBasedScale = availableHeight / (totalContentHeightEm * baseFontSize);
+            finalScale = Math.min(finalScale, heightBasedScale);
+        }
+        
+        // Ensure we have a reasonable minimum scale
+        finalScale = Math.max(finalScale, 0.1);
+        
+        // Use the same scale for everything to maintain identical appearance
+        setContentScale(finalScale);
+        setTitleScale(finalScale);
+    }, [columns, events]);
 
     useEffect(() => {
+        // Initial calculation
         calculateScales();
+        
+        // Recalculate after a short delay to account for header rendering
+        const timeoutId = setTimeout(() => {
+            calculateScales();
+        }, 100);
+        
         window.addEventListener('resize', calculateScales);
+
+        // Use ResizeObserver for more accurate container size tracking
+        let resizeObserver: ResizeObserver | null = null;
+        let headerResizeObserver: ResizeObserver | null = null;
+        
+        if (containerRef.current && window.ResizeObserver) {
+            resizeObserver = new ResizeObserver(() => {
+                calculateScales();
+            });
+            resizeObserver.observe(containerRef.current);
+        }
+        
+        if (headerRef.current && window.ResizeObserver) {
+            headerResizeObserver = new ResizeObserver(() => {
+                calculateScales();
+            });
+            headerResizeObserver.observe(headerRef.current);
+        }
 
         const refreshInterval = setInterval(() => {
             window.location.reload();
@@ -122,7 +192,14 @@ const BoardView: React.FC<BoardViewProps> = (props) => {
         }, 30 * 60 * 1000);
 
         return () => {
+            clearTimeout(timeoutId);
             window.removeEventListener('resize', calculateScales);
+            if (resizeObserver) {
+                resizeObserver.disconnect();
+            }
+            if (headerResizeObserver) {
+                headerResizeObserver.disconnect();
+            }
             clearInterval(refreshInterval);
             clearInterval(memoryCheck);
         };
@@ -318,44 +395,62 @@ const BoardView: React.FC<BoardViewProps> = (props) => {
         saveColumns(reorderedColumns);
     };
 
-    const finalContentScale = displaySettings.scale * contentScale;
+    const finalContentScale = contentScale;
         
     return (
         <div ref={containerRef} className="relative h-full flex flex-col overflow-hidden" style={{ backgroundColor: displaySettings.mainBackgroundColor }}>
-            <header className="flex-shrink-0 flex justify-between items-start p-4 md:p-6 pb-2" style={{ fontSize: `${titleScale * 16}px` }}>
-                <div className="flex-1 text-right flex flex-col items-start gap-2">
-                    <ZmanimInfo zmanimData={zmanimData} loading={zmanimLoading} error={zmanimError} settings={displaySettings} />
+            <header 
+                ref={headerRef} 
+                className="flex-shrink-0 flex justify-between items-start" 
+                style={{ 
+                    fontSize: `${titleScale * 16}px`,
+                    padding: `${titleScale * 24}px ${titleScale * 32}px ${titleScale * 8}px ${titleScale * 32}px`
+                }}
+            >
+                <div className="flex-1 text-right flex flex-col items-start" style={{ gap: `${titleScale * 8}px` }}>
+                    <ZmanimInfo zmanimData={zmanimData} loading={zmanimLoading} error={zmanimError} settings={displaySettings} scale={titleScale} />
                 </div>
                 <div className="flex-1 text-center">
-                    <h1 className="font-title text-[5.5em] leading-tight whitespace-nowrap drop-shadow-md" style={{ color: displaySettings.mainTitleColor, fontSize: `${5.5 * (displaySettings.mainTitleSize / 100)}em`}}>
+                    <h1 className="font-title leading-tight whitespace-nowrap drop-shadow-md" style={{ color: displaySettings.mainTitleColor, fontSize: `${5.5 * titleScale * 16 * (displaySettings.mainTitleSize / 100)}px`}}>
                         {displaySettings.boardTitle}
                     </h1>
                 </div>
-                <div className="flex-1 text-left flex flex-col items-end gap-2">
-                    <Clock settings={displaySettings} />
+                <div className="flex-1 text-left flex flex-col items-end" style={{ gap: `${titleScale * 8}px` }}>
+                    <Clock settings={displaySettings} scale={titleScale} />
                 </div>
             </header>
             
             {/* Floating buttons - hidden when inactive */}
             {!isEditMode && isActive && (
-                <div className="fixed bottom-4 left-4 z-40 opacity-50 hover:opacity-100 transition-opacity duration-300">
-                    <div className="flex flex-col gap-2">
-                        <button onClick={onBackToHome} className="p-3 bg-white/90 rounded-full shadow-lg hover:bg-amber-100 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2">
-                            <HomeIcon />
+                <div className="fixed z-40 opacity-50 hover:opacity-100 transition-opacity duration-300" style={{ bottom: `${contentScale * 16}px`, left: `${contentScale * 16}px` }}>
+                    <div className="flex flex-col" style={{ gap: `${contentScale * 8}px` }}>
+                        <button onClick={onBackToHome} className="bg-white/90 rounded-full shadow-lg hover:bg-amber-100 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2" style={{ padding: `${contentScale * 12}px` }}>
+                            <HomeIcon size={contentScale * 24} />
                         </button>
-                        <button onClick={onSwitchToAdmin} className="p-3 bg-white/90 rounded-full shadow-lg hover:bg-amber-100 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2">
-                            <SettingsIcon />
+                        <button onClick={onSwitchToAdmin} className="bg-white/90 rounded-full shadow-lg hover:bg-amber-100 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2" style={{ padding: `${contentScale * 12}px` }}>
+                            <SettingsIcon size={contentScale * 24} />
                         </button>
                     </div>
                 </div>
             )}
             
-            <main ref={mainContentRef} className="flex-grow flex items-stretch gap-4 md:gap-6 px-4 md:px-6 pb-4 md:pb-6 overflow-x-auto" style={{ fontSize: `${finalContentScale * 16}px` }}>
+            <main 
+                ref={mainContentRef} 
+                className="flex-grow flex items-stretch overflow-x-auto" 
+                style={{ 
+                    fontSize: `${finalContentScale * 16}px`,
+                    gap: `${finalContentScale * 24}px`,
+                    padding: `0 ${finalContentScale * 32}px ${finalContentScale * 24}px ${finalContentScale * 32}px`
+                }}
+            >
                 {columns.sort((a, b) => a.order - b.order).map(column => (
                     <div
                         key={column.id}
-                        className={`transition-all duration-300 flex-shrink-0 flex-grow basis-0 rounded-lg px-3 pb-3 pt-1 md:px-4 md:pb-4 md:pt-1 shadow ${draggingColumnId === column.id ? 'opacity-30' : ''}`}
-                        style={{ backgroundColor: displaySettings.columnBackgroundColor }}
+                        className={`transition-all duration-300 flex-shrink-0 flex-grow basis-0 rounded-lg shadow ${draggingColumnId === column.id ? 'opacity-30' : ''}`}
+                        style={{ 
+                            backgroundColor: displaySettings.columnBackgroundColor,
+                            padding: `${finalContentScale * 8}px ${finalContentScale * 16}px ${finalContentScale * 16}px ${finalContentScale * 16}px`
+                        }}
                         onDragOver={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; }}
                         onDrop={(e) => handleColumnDrop(e, column)}
                     >
