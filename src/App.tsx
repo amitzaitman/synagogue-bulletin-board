@@ -10,7 +10,6 @@ import { useBoardSettings } from './hooks/useBoardSettings';
 import { useZmanim } from './hooks/useZmanim';
 import { useLastSync } from './hooks/useLastSync';
 import LandingPage from './components/LandingPage';
-import { EventItem, Column, BoardSettings } from './types';
 import { saveSelectedSynagogue } from './utils/offlineStorage';
 
 const BoardPage: React.FC = () => {
@@ -102,7 +101,8 @@ const BoardPage: React.FC = () => {
             transformOrigin: 'center center'
           }}
         >
-          <div className="w-full h-full" style={{ padding: '2%' }}>
+          <div className="w-full h-full">
+            
             <BoardView
               events={events}
               columns={columns}

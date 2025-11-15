@@ -49,9 +49,7 @@ const BoardView: React.FC<BoardViewProps> = (props) => {
         events, columns, settings,
         saveEvents, saveColumns, saveSettings,
         onEnterEditMode, onSaveChanges, onBackToHome, isEditMode,
-        zmanimData, zmanimLoading, zmanimError,
-        lastSyncTime, isOnline
-    } = props;
+        zmanimData, zmanimLoading, zmanimError} = props;
 
     const [displaySettings, setDisplaySettings] = useState<BoardSettings>(settings);
     
@@ -398,7 +396,7 @@ const BoardView: React.FC<BoardViewProps> = (props) => {
                         >
                             −
                         </button>
-                                                <button
+                        <button
                             onClick={() => {
                                 saveSettings({ ...displaySettings, zoomLevel: 1.0 });
                             }}

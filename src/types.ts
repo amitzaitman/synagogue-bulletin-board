@@ -117,4 +117,5 @@ export interface BoardSettings {
   elevation?: number;
   latitude?: number;
   longitude?: number;
+  zoomLevel?: number; // Zoom level for the entire board view
 }
