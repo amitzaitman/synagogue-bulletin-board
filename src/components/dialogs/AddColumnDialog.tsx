@@ -35,6 +35,7 @@ const AddColumnDialog: React.FC<AddColumnDialogProps> = ({
                             onChange={(e) => setNewColumnTitle(e.target.value)}
                             placeholder="לדוגמה: ערב שבת"
                             className="w-full p-3 border-2 border-stone-300 rounded-lg text-right focus:outline-none focus:border-amber-500"
+                            title="שם העמודה"
                             autoFocus
                             dir="rtl"
                         />
@@ -46,6 +47,7 @@ const AddColumnDialog: React.FC<AddColumnDialogProps> = ({
                             value={newColumnType}
                             onChange={(e) => setNewColumnType(e.target.value as 'shabbat' | 'weekdays' | 'moed')}
                             className="w-full p-3 border-2 border-stone-300 rounded-lg text-right focus:outline-none focus:border-amber-500"
+                            title="סוג העמודה"
                             dir="rtl"
                         >
                             <option value="shabbat">שבת (השבת הקרובה)</option>
@@ -61,6 +63,7 @@ const AddColumnDialog: React.FC<AddColumnDialogProps> = ({
                                 type="date"
                                 value={newColumnDate}
                                 onChange={(e) => setNewColumnDate(e.target.value)}
+                                title="תאריך המועד"
                                 className="w-full p-3 border-2 border-stone-300 rounded-lg text-right focus:outline-none focus:border-amber-500"
                                 dir="rtl"
                             />
@@ -80,7 +83,7 @@ const AddColumnDialog: React.FC<AddColumnDialogProps> = ({
                     </div>
                 </div>
 
-                <div className="flex gap-3 mt-6">
+                <div className="flex gap-2 mt-6">
                     <button
                         onClick={onCancel}
                         className="flex-1 bg-stone-200 hover:bg-stone-300 text-stone-700 font-bold py-3 px-6 rounded-lg transition-colors"

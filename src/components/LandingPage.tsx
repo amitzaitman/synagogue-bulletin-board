@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { db } from '../firebase';
-import { collection, getDocs, doc, getDoc } from 'firebase/firestore';
+import { collection, getDocs, doc, getDoc, setDoc } from 'firebase/firestore';
 
 interface Synagogue {
   id: string;
@@ -10,35 +10,95 @@ interface Synagogue {
 }
 
 const LandingPage: React.FC = () => {
+  const navigate = useNavigate();
   const [synagogues, setSynagogues] = useState<Synagogue[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [newSynagogueName, setNewSynagogueName] = useState('');
+  const [creating, setCreating] = useState(false);
+
+  const fetchSynagogues = async () => {
+    try {
+      const querySnapshot = await getDocs(collection(db, 'synagogues'));
+      const synagoguesPromises = querySnapshot.docs.map(async (docSnap) => {
+        const settingsDoc = await getDoc(doc(db, 'synagogues', docSnap.id, 'settings', 'board'));
+        const settingsData = settingsDoc.exists() ? settingsDoc.data() : {};
+
+        return {
+          id: docSnap.id,
+          name: settingsData.boardTitle || docSnap.data().name || docSnap.id,
+          slug: settingsData.slug,
+        };
+      });
+
+      const synagoguesData = await Promise.all(synagoguesPromises);
+      setSynagogues(synagoguesData);
+    } catch (error) {
+      console.error("Error fetching synagogues:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchSynagogues = async () => {
-      try {
-        const querySnapshot = await getDocs(collection(db, 'synagogues'));
-        const synagoguesPromises = querySnapshot.docs.map(async (docSnap) => {
-          const settingsDoc = await getDoc(doc(db, 'synagogues', docSnap.id, 'settings', 'board'));
-          const settingsData = settingsDoc.exists() ? settingsDoc.data() : {};
-
-          return {
-            id: docSnap.id,
-            name: settingsData.boardTitle || docSnap.data().name || docSnap.id,
-            slug: settingsData.slug,
-          };
-        });
-
-        const synagoguesData = await Promise.all(synagoguesPromises);
-        setSynagogues(synagoguesData);
-      } catch (error) {
-        console.error("Error fetching synagogues:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchSynagogues();
   }, []);
+
+  const handleCreateSynagogue = async () => {
+    if (!newSynagogueName.trim()) return;
+
+    setCreating(true);
+    try {
+      // Create a simple slug from the name
+      const slug = newSynagogueName
+        .trim()
+        .toLowerCase()
+        .replace(/\s+/g, '-')
+        .replace(/[^\w\-א-ת]/g, '');
+
+      // Generate a unique ID
+      const synagogueId = `syn_${Date.now()}`;
+
+      // Create synagogue document
+      await setDoc(doc(db, 'synagogues', synagogueId), {
+        name: newSynagogueName.trim(),
+        createdAt: new Date().toISOString()
+      });
+
+      // Create default settings
+      await setDoc(doc(db, 'synagogues', synagogueId, 'settings', 'board'), {
+        boardTitle: newSynagogueName.trim(),
+        slug: slug,
+        city: '',
+        latitude: '',
+        longitude: '',
+        mainBackgroundColor: '#f0f4f8',
+        boardBackgroundColor: '#ffffff',
+        columnBackgroundColor: '#f8fafc80',
+        eventBackgroundColor: '#ffffff',
+        headerTextColor: '#1e3a8a',
+        eventTextColor: '#1e293b',
+        columnTitleColor: '#475569',
+        theme: 'custom',
+        fontFamily: 'Rubik',
+        showZmanim: false,
+        showGregorianDate: false,
+        showHebrewDate: true,
+        showParsha: true,
+        showHoliday: true
+      });
+
+      // Navigate to the new synagogue
+      navigate(`/${slug}`);
+    } catch (error) {
+      console.error('Error creating synagogue:', error);
+      alert('שגיאה ביצירת הקהילה. נסה שוב.');
+    } finally {
+      setCreating(false);
+      setShowCreateDialog(false);
+      setNewSynagogueName('');
+    }
+  };
 
   if (loading) {
     return (
@@ -50,17 +110,58 @@ const LandingPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6 relative">
-      {/* Management button in bottom right corner */}
-      <Link
-        to="/super-login"
-        className="fixed bottom-6 right-6 p-3 bg-indigo-600 text-white rounded-full shadow-lg hover:bg-indigo-700 transition transform hover:scale-110 z-50"
-        title="ניהול קהילות"
+      {/* Create Synagogue button in bottom right corner */}
+      <button
+        onClick={() => setShowCreateDialog(true)}
+        className="fixed bottom-6 right-6 p-3 bg-green-600 text-white rounded-full shadow-lg hover:bg-green-700 transition transform hover:scale-110 z-50"
+        title="צור קהילה חדשה"
       >
         <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-          <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+          <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
         </svg>
-      </Link>
+      </button>
+
+      {/* Create Synagogue Dialog */}
+      {showCreateDialog && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-8 rounded-xl shadow-2xl max-w-md w-full mx-4">
+            <h2 className="text-2xl font-bold mb-4 text-indigo-900 text-center">צור קהילה חדשה</h2>
+            <input
+              type="text"
+              value={newSynagogueName}
+              onChange={(e) => setNewSynagogueName(e.target.value)}
+              placeholder="שם הקהילה"
+              className="w-full p-3 border border-gray-300 rounded-lg mb-4 text-right"
+              dir="rtl"
+              autoFocus
+              onKeyPress={(e) => {
+                if (e.key === 'Enter' && !creating) {
+                  handleCreateSynagogue();
+                }
+              }}
+            />
+            <div className="flex gap-2">
+              <button
+                onClick={handleCreateSynagogue}
+                disabled={creating || !newSynagogueName.trim()}
+                className="flex-1 bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 transition disabled:bg-gray-400 disabled:cursor-not-allowed"
+              >
+                {creating ? 'יוצר...' : 'צור'}
+              </button>
+              <button
+                onClick={() => {
+                  setShowCreateDialog(false);
+                  setNewSynagogueName('');
+                }}
+                disabled={creating}
+                className="flex-1 bg-gray-300 text-gray-700 py-3 rounded-lg hover:bg-gray-400 transition disabled:bg-gray-200 disabled:cursor-not-allowed"
+              >
+                ביטול
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="container mx-auto max-w-5xl">
         <div className="mb-8 text-center">
@@ -72,7 +173,7 @@ const LandingPage: React.FC = () => {
         {synagogues.length === 0 ? (
           <div className="text-center py-20">
             <p className="text-2xl text-gray-600 mb-6">אין קהילות רשומות כרגע</p>
-            <p className="text-gray-500 mb-8">צור קשר עם המנהל להוספת קהילה</p>
+            <p className="text-gray-500 mb-8">לחץ על כפתור + ליצירת קהילה חדשה</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-6">

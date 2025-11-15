@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { db, auth } from './firebase';
-import { HashRouter as Router, Routes, Route, useParams, useNavigate, Navigate } from 'react-router-dom';
+import { db } from './firebase';
+import { HashRouter as Router, Routes, Route, useParams, useNavigate } from 'react-router-dom';
 import { doc, getDoc, collection, getDocs } from 'firebase/firestore';
-import SuperUserLogin from './components/SuperUserLogin';
 import BoardView from './components/BoardView';
 import OnlineStatus from './components/OnlineStatus';
 import { useEvents } from './hooks/useEvents';
@@ -11,7 +10,6 @@ import { useBoardSettings } from './hooks/useBoardSettings';
 import { useZmanim } from './hooks/useZmanim';
 import { useLastSync } from './hooks/useLastSync';
 import LandingPage from './components/LandingPage';
-import ManageSynagogues from './components/ManageSynagogues';
 import { EventItem, Column, BoardSettings } from './types';
 import { saveSelectedSynagogue } from './utils/offlineStorage';
 
@@ -23,27 +21,10 @@ const BoardPage: React.FC = () => {
   const [isEditMode, setIsEditMode] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  // Original state from hooks
-  const { events: originalEvents, saveEvents, lastRefresh, loading: eventsLoading } = useEvents(synagogueId || undefined);
-  const { columns: originalColumns, saveColumns } = useColumns(synagogueId || undefined);
-  const { settings: originalSettings, saveSettings } = useBoardSettings(synagogueId || undefined);
-
-  // Temporary state for editing
-  const [events, setEvents] = useState<EventItem[]>(originalEvents);
-  const [columns, setColumns] = useState<Column[]>(originalColumns);
-  const [settings, setSettings] = useState<BoardSettings>(originalSettings);
-
-  useEffect(() => {
-    setEvents(originalEvents);
-  }, [originalEvents]);
-
-  useEffect(() => {
-    setColumns(originalColumns);
-  }, [originalColumns]);
-
-  useEffect(() => {
-    setSettings(originalSettings);
-  }, [originalSettings]);
+  // Single source of truth from hooks
+  const { events, saveEvents, lastRefresh, loading: eventsLoading } = useEvents(synagogueId || undefined);
+  const { columns, saveColumns } = useColumns(synagogueId || undefined);
+  const { settings, saveSettings } = useBoardSettings(synagogueId || undefined);
 
   const { zmanimData, loading: zmanimLoading, error: zmanimError } = useZmanim(settings);
   const { lastSyncTime, isOnline } = useLastSync();
@@ -85,20 +66,13 @@ const BoardPage: React.FC = () => {
     resolveSynagogue();
   }, [slugOrId, navigate]);
 
-  const handleSwitchToAdmin = () => {
+  const handleEnterEditMode = () => {
     // Entering edit mode - allow anyone to access
     setIsEditMode(true);
-    // Copy original state to temporary state
-    setEvents(originalEvents);
-    setColumns(originalColumns);
-    setSettings(originalSettings);
   };
 
   const handleSaveChanges = () => {
-    // Save all temporary state to database
-    saveEvents(events);
-    saveColumns(columns);
-    saveSettings(settings);
+    // Exit edit mode (changes are already saved via hooks)
     setIsEditMode(false);
   };
 
@@ -107,7 +81,7 @@ const BoardPage: React.FC = () => {
     navigate('/');
   };
 
-  if (loading || !synagogueId || eventsLoading || !originalSettings) {
+  if (loading || !synagogueId || eventsLoading || !settings) {
     return <div className="flex items-center justify-center h-screen">טוען...</div>;
   }
 
@@ -130,13 +104,13 @@ const BoardPage: React.FC = () => {
         >
           <div className="w-full h-full" style={{ padding: '2%' }}>
             <BoardView
-              events={isEditMode ? events : originalEvents}
-              columns={isEditMode ? columns : originalColumns}
-              settings={isEditMode ? settings : originalSettings}
-              saveEvents={isEditMode ? setEvents : saveEvents}
-              saveColumns={isEditMode ? setColumns : saveColumns}
-              saveSettings={isEditMode ? setSettings : saveSettings}
-              onSwitchToAdmin={handleSwitchToAdmin}
+              events={events}
+              columns={columns}
+              settings={settings}
+              saveEvents={saveEvents}
+              saveColumns={saveColumns}
+              saveSettings={saveSettings}
+              onEnterEditMode={handleEnterEditMode}
               onSaveChanges={handleSaveChanges}
               onBackToHome={handleBackToHome}
               isEditMode={isEditMode}
@@ -155,27 +129,10 @@ const BoardPage: React.FC = () => {
 };
 
 const App: React.FC = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [authInitialized, setAuthInitialized] = useState(false);
-
-  useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged(user => {
-      setIsAuthenticated(!!user);
-      setAuthInitialized(true);
-    });
-    return () => unsubscribe();
-  }, []);
-
-  if (!authInitialized) {
-    return <div className="flex items-center justify-center h-screen">טוען...</div>;
-  }
-
   return (
     <Router>
       <OnlineStatus />
       <Routes>
-        <Route path="/super-login" element={<SuperUserLogin />} />
-        <Route path="/manage" element={isAuthenticated ? <ManageSynagogues /> : <Navigate to="/super-login" />} />
         <Route path="/:slugOrId" element={<BoardPage />} />
         <Route path="/" element={<LandingPage />} />
       </Routes>

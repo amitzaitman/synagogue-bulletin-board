@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { EventItem, BoardSettings, Column, ZmanimData } from '../types';
 import Clock from './Clock';
 import ColumnView from './ColumnView';
@@ -10,7 +10,7 @@ import EditModePanel from './EditModePanel';
 import { useColumnEditor } from '../hooks/useColumnEditor';
 import { useInactivity } from '../hooks/useInactivity';
 import { calculateAllEventTimes } from '../utils/timeCalculations';
-import { saveWithBackup, createRecoveryPoint } from '../utils/dataBackup';
+import { useResponsiveScaling } from '../hooks/useResponsiveScaling';
 
 const SettingsIcon = ({ size = 24 }: { size?: number }) => (
   <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -32,7 +32,7 @@ interface BoardViewProps {
   saveEvents: (events: EventItem[]) => void;
   saveColumns: (columns: Column[]) => void;
   saveSettings: (settings: BoardSettings) => void;
-  onSwitchToAdmin: () => void;
+  onEnterEditMode: () => void;
   onSaveChanges: () => void;
   onBackToHome: () => void;
   isEditMode: boolean;
@@ -48,7 +48,7 @@ const BoardView: React.FC<BoardViewProps> = (props) => {
     const {
         events, columns, settings,
         saveEvents, saveColumns, saveSettings,
-        onSwitchToAdmin, onSaveChanges, onBackToHome, isEditMode,
+        onEnterEditMode, onSaveChanges, onBackToHome, isEditMode,
         zmanimData, zmanimLoading, zmanimError,
         lastSyncTime, isOnline
     } = props;
@@ -75,139 +75,84 @@ const BoardView: React.FC<BoardViewProps> = (props) => {
     const { editingColumn, startEditing, setEditTitle, setEditColumnType, setEditSpecificDate, saveEdit } = useColumnEditor(columns, saveColumns);
     const containerRef = useRef<HTMLDivElement>(null);
     const mainContentRef = useRef<HTMLElement>(null);
+    const headerRef = useRef<HTMLElement>(null);
 
     const { isActive } = useInactivity({ timeoutMs: 3000 }); // 3 seconds timeout
-    
+
     const handleOpenSettings = (section: string) => {
         setActiveSection(section);
         setShowSettingsPanel(true);
     };
-    
+
     const handleCloseSettings = () => {
         setShowSettingsPanel(false);
         setActiveSection(undefined);
     };
 
-    const [contentScale, setContentScale] = useState(1);
-    const [titleScale, setTitleScale] = useState(1);
-    // Fixed design size for consistent scaling across all screens
-    const DESIGN_WIDTH = 1920;  // 16:9 design width
-    const headerRef = useRef<HTMLElement>(null);
+    // Track container and header dimensions for scaling
+    const [containerWidth, setContainerWidth] = useState(0);
+    const [containerHeight, setContainerHeight] = useState(0);
+    const [headerHeight, setHeaderHeight] = useState(0);
 
-    const calculateScales = useCallback(() => {
-        if (!containerRef.current || !mainContentRef.current) {
-            return;
-        }
+    // Use the new responsive scaling hook
+    const { headerScale, contentScale } = useResponsiveScaling({
+        containerWidth,
+        containerHeight,
+        headerHeight,
+        columns,
+        events,
+        zoomLevel: displaySettings.zoomLevel || 1.0,
+    });
 
-        const containerWidth = containerRef.current.clientWidth;
-        const containerHeight = containerRef.current.clientHeight;
-        
-        if (containerWidth <= 0 || containerHeight <= 0) {
-            return;
-        }
-        
-        // Calculate scale based on container dimensions relative to design size (1920x1080)
-        // Since container maintains 16:9, we can use either dimension - they'll give the same ratio
-        // Use width for consistency - this ensures identical appearance across all screens
-        let finalScale = containerWidth / DESIGN_WIDTH;
-        
-        // Verify content fits with this scale and adjust ONLY if absolutely necessary
-        // This preserves identical appearance while preventing overflow
-        const headerHeight = headerRef.current?.clientHeight || 0;
-        const availableHeight = containerHeight - headerHeight;
-        
-        // Get content metrics
-        const maxEventsInColumn = Math.max(...columns.map(col => 
-            events.filter(e => e.columnId === col.id).length
-        ), 1);
-        
-        // Base measurements in em units (will be converted to pixels with scale)
-        const columnHeaderHeight = 3; // em units for column title
-        const columnPadding = 2; // em units for padding
-        const estimatedRowHeight = 4; // em units per row
-        const mainContentPadding = 2; // em units for main content padding
-        
-        const baseFontSize = 16; // pixels
-        
-        // Calculate total content height needed (in em)
-        const totalContentHeightEm = columnHeaderHeight + columnPadding + (maxEventsInColumn * estimatedRowHeight) + mainContentPadding;
-        
-        // Check if content fits with the base scale
-        const testContentHeight = totalContentHeightEm * baseFontSize * finalScale;
-        if (testContentHeight > availableHeight && availableHeight > 0) {
-            // Only adjust if content doesn't fit - calculate minimum scale needed
-            const heightBasedScale = availableHeight / (totalContentHeightEm * baseFontSize);
-            finalScale = Math.min(finalScale, heightBasedScale);
-        }
-        
-        // Ensure we have a reasonable minimum scale
-        finalScale = Math.max(finalScale, 0.1);
-        
-        // Use the same scale for everything to maintain identical appearance
-        setContentScale(finalScale);
-        setTitleScale(finalScale);
-    }, [columns, events]);
-
+    // Measure container and header dimensions
     useEffect(() => {
-        // Initial calculation
-        calculateScales();
-        
-        // Recalculate after a short delay to account for header rendering
-        const timeoutId = setTimeout(() => {
-            calculateScales();
-        }, 100);
-        
-        window.addEventListener('resize', calculateScales);
+        const measureDimensions = () => {
+            if (containerRef.current) {
+                setContainerWidth(containerRef.current.clientWidth);
+                setContainerHeight(containerRef.current.clientHeight);
+            }
+            if (headerRef.current) {
+                setHeaderHeight(headerRef.current.clientHeight);
+            }
+        };
 
-        // Use ResizeObserver for more accurate container size tracking
-        let resizeObserver: ResizeObserver | null = null;
-        let headerResizeObserver: ResizeObserver | null = null;
-        
-        if (containerRef.current && window.ResizeObserver) {
-            resizeObserver = new ResizeObserver(() => {
-                calculateScales();
-            });
-            resizeObserver.observe(containerRef.current);
-        }
-        
-        if (headerRef.current && window.ResizeObserver) {
-            headerResizeObserver = new ResizeObserver(() => {
-                calculateScales();
-            });
-            headerResizeObserver.observe(headerRef.current);
+        // Initial measurement
+        measureDimensions();
+
+        // Measure after a short delay for header rendering
+        const timeoutId = setTimeout(measureDimensions, 100);
+
+        // Re-measure on window resize
+        window.addEventListener('resize', measureDimensions);
+
+        // Use ResizeObserver for accurate tracking
+        let containerObserver: ResizeObserver | null = null;
+        let headerObserver: ResizeObserver | null = null;
+
+        if (window.ResizeObserver) {
+            if (containerRef.current) {
+                containerObserver = new ResizeObserver(measureDimensions);
+                containerObserver.observe(containerRef.current);
+            }
+            if (headerRef.current) {
+                headerObserver = new ResizeObserver(measureDimensions);
+                headerObserver.observe(headerRef.current);
+            }
         }
 
+        // Auto-refresh every 4 hours
         const refreshInterval = setInterval(() => {
             window.location.reload();
         }, 4 * 60 * 60 * 1000);
 
-        const memoryCheck = setInterval(() => {
-            if (window.performance && (window.performance as any).memory) {
-                const memoryInfo = (window.performance as any).memory;
-                if (memoryInfo.usedJSHeapSize > memoryInfo.jsHeapSizeLimit * 0.9) {
-                    console.warn('High memory usage detected, triggering refresh');
-                    window.location.reload();
-                }
-            }
-        }, 30 * 60 * 1000);
-
         return () => {
             clearTimeout(timeoutId);
-            window.removeEventListener('resize', calculateScales);
-            if (resizeObserver) {
-                resizeObserver.disconnect();
-            }
-            if (headerResizeObserver) {
-                headerResizeObserver.disconnect();
-            }
+            window.removeEventListener('resize', measureDimensions);
+            if (containerObserver) containerObserver.disconnect();
+            if (headerObserver) headerObserver.disconnect();
             clearInterval(refreshInterval);
-            clearInterval(memoryCheck);
         };
-    }, [calculateScales]);
-
-    useEffect(() => {
-        calculateScales();
-    }, [columns, events, calculateScales]);
+    }, []);
 
     const calculatedTimes = useMemo(() => calculateAllEventTimes(events, columns, zmanimData, settings), [events, columns, zmanimData, settings]);
     
@@ -265,8 +210,6 @@ const BoardView: React.FC<BoardViewProps> = (props) => {
     
     const handleSaveEvent = (eventData: EventItem) => {
         try {
-            createRecoveryPoint(events, columns, settings);
-
             const exists = events.some(ev => ev.id === eventData.id);
             const newEvents = exists
                 ? events.map(ev => ev.id === eventData.id ? eventData : ev)
@@ -300,14 +243,6 @@ const BoardView: React.FC<BoardViewProps> = (props) => {
             }
 
             saveEvents(finalEvents);
-            saveWithBackup({
-                timestamp: new Date().toISOString(),
-                events: finalEvents,
-                columns,
-                settings
-            });
-
-            localStorage.removeItem('lastRecoveryPoint');
             setEditingItemId(null);
             setInlineAddEvent(null);
         } catch (error) {
@@ -399,24 +334,24 @@ const BoardView: React.FC<BoardViewProps> = (props) => {
         
     return (
         <div ref={containerRef} className="relative h-full flex flex-col overflow-hidden" style={{ backgroundColor: displaySettings.mainBackgroundColor }}>
-            <header 
-                ref={headerRef} 
-                className="flex-shrink-0 flex justify-between items-start" 
-                style={{ 
-                    fontSize: `${titleScale * 16}px`,
-                    padding: `${titleScale * 24}px ${titleScale * 32}px ${titleScale * 8}px ${titleScale * 32}px`
+            <header
+                ref={headerRef}
+                className="flex-shrink-0 flex justify-between items-start"
+                style={{
+                    fontSize: `${headerScale * 16}px`,
+                    padding: `${headerScale * 24}px ${headerScale * 32}px ${headerScale * 8}px ${headerScale * 32}px`
                 }}
             >
-                <div className="flex-1 text-right flex flex-col items-start" style={{ gap: `${titleScale * 8}px` }}>
-                    <ZmanimInfo zmanimData={zmanimData} loading={zmanimLoading} error={zmanimError} settings={displaySettings} scale={titleScale} />
+                <div className="flex-1 text-right flex flex-col items-start" style={{ gap: `${headerScale * 8}px` }}>
+                    <ZmanimInfo zmanimData={zmanimData} loading={zmanimLoading} error={zmanimError} settings={displaySettings} scale={headerScale} />
                 </div>
                 <div className="flex-1 text-center">
-                    <h1 className="font-title leading-tight whitespace-nowrap drop-shadow-md" style={{ color: displaySettings.mainTitleColor, fontSize: `${5.5 * titleScale * 16 * (displaySettings.mainTitleSize / 100)}px`}}>
+                    <h1 className="font-title leading-tight whitespace-nowrap drop-shadow-md" style={{ color: displaySettings.mainTitleColor, fontSize: `${8.0 * headerScale * 16 * (displaySettings.mainTitleSize / 100)}px`}}>
                         {displaySettings.boardTitle}
                     </h1>
                 </div>
-                <div className="flex-1 text-left flex flex-col items-end" style={{ gap: `${titleScale * 8}px` }}>
-                    <Clock settings={displaySettings} scale={titleScale} />
+                <div className="flex-1 text-left flex flex-col items-end" style={{ gap: `${headerScale * 8}px` }}>
+                    <Clock settings={displaySettings} scale={headerScale} />
                 </div>
             </header>
             
@@ -424,11 +359,54 @@ const BoardView: React.FC<BoardViewProps> = (props) => {
             {!isEditMode && isActive && (
                 <div className="fixed z-40 opacity-50 hover:opacity-100 transition-opacity duration-300" style={{ bottom: `${contentScale * 16}px`, left: `${contentScale * 16}px` }}>
                     <div className="flex flex-col" style={{ gap: `${contentScale * 8}px` }}>
-                        <button onClick={onBackToHome} className="bg-white/90 rounded-full shadow-lg hover:bg-amber-100 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2" style={{ padding: `${contentScale * 12}px` }}>
+                        <button onClick={onBackToHome} className="bg-white/90 rounded-full shadow-lg hover:bg-amber-100 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2" style={{ padding: `${contentScale * 12}px` }} title="חזרה לדף הבית">
                             <HomeIcon size={contentScale * 24} />
                         </button>
-                        <button onClick={onSwitchToAdmin} className="bg-white/90 rounded-full shadow-lg hover:bg-amber-100 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2" style={{ padding: `${contentScale * 12}px` }}>
+                        <button onClick={onEnterEditMode} className="bg-white/90 rounded-full shadow-lg hover:bg-amber-100 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2" style={{ padding: `${contentScale * 12}px` }} title="כניסה למצב עריכה">
                             <SettingsIcon size={contentScale * 24} />
+                        </button>
+                    </div>
+                </div>
+            )}
+
+            {/* Zoom controls - bottom right corner */}
+            {!isEditMode && isActive && (
+                <div className="fixed z-40 bg-white/90 rounded-lg shadow-lg opacity-50 hover:opacity-100 transition-opacity duration-300" style={{ bottom: `${contentScale * 16}px`, right: `${contentScale * 16}px`, padding: `${contentScale * 8}px` }}>
+                    <div className="flex flex-col items-center" style={{ gap: `${contentScale * 8}px` }}>
+                        <button 
+                            onClick={() => { 
+                                const newZoom = Math.min((displaySettings.zoomLevel || 1.0) + 0.1, 2.0); 
+                                saveSettings({ ...displaySettings, zoomLevel: newZoom }); 
+                            }} 
+                            className="bg-green-600 hover:bg-green-700 text-white rounded-md transition font-bold" 
+                            style={{ padding: `${contentScale * 6}px ${contentScale * 12}px`, fontSize: `${contentScale * 16}px` }} 
+                            title="הגדל (Zoom In)" 
+                        >
+                            +
+                        </button>
+                        <div className="text-xs text-gray-700 font-mono" style={{ fontSize: `${contentScale * 10}px` }}>
+                            {Math.round((displaySettings.zoomLevel || 1.0) * 100)}%
+                        </div>
+                        <button
+                            onClick={() => { 
+                                const newZoom = Math.max((displaySettings.zoomLevel || 1.0) - 0.1, 0.5); 
+                                saveSettings({ ...displaySettings, zoomLevel: newZoom }); 
+                            }} 
+                            className="bg-red-600 hover:bg-red-700 text-white rounded-md transition font-bold" 
+                            style={{ padding: `${contentScale * 6}px ${contentScale * 12}px`, fontSize: `${contentScale * 16}px` }} 
+                            title="הקטן (Zoom Out)" 
+                        >
+                            −
+                        </button>
+                                                <button
+                            onClick={() => {
+                                saveSettings({ ...displaySettings, zoomLevel: 1.0 });
+                            }}
+                            className="bg-gray-500 hover:bg-gray-600 text-white rounded-md transition text-xs"
+                            style={{ padding: `${contentScale * 4}px ${contentScale * 8}px`, fontSize: `${contentScale * 10}px` }}
+                            title="איפוס (Reset)"
+                        >
+                            Reset
                         </button>
                     </div>
                 </div>
@@ -439,8 +417,8 @@ const BoardView: React.FC<BoardViewProps> = (props) => {
                 className="flex-grow flex items-stretch overflow-x-auto" 
                 style={{ 
                     fontSize: `${finalContentScale * 16}px`,
-                    gap: `${finalContentScale * 24}px`,
-                    padding: `0 ${finalContentScale * 32}px ${finalContentScale * 24}px ${finalContentScale * 32}px`
+                    gap: `${headerScale * 32}px`,
+                    padding: `${headerScale * 24}px ${headerScale * 32}px ${headerScale * 32}px ${headerScale * 32}px`
                 }}
             >
                 {columns.sort((a, b) => a.order - b.order).map(column => (
@@ -449,7 +427,7 @@ const BoardView: React.FC<BoardViewProps> = (props) => {
                         className={`transition-all duration-300 flex-shrink-0 flex-grow basis-0 rounded-lg shadow ${draggingColumnId === column.id ? 'opacity-30' : ''}`}
                         style={{ 
                             backgroundColor: displaySettings.columnBackgroundColor,
-                            padding: `${finalContentScale * 8}px ${finalContentScale * 16}px ${finalContentScale * 16}px ${finalContentScale * 16}px`
+                            padding: `${finalContentScale * 8}px ${finalContentScale * 32}px ${finalContentScale * 8}px ${finalContentScale * 32}px`
                         }}
                         onDragOver={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; }}
                         onDrop={(e) => handleColumnDrop(e, column)}

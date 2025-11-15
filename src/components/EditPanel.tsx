@@ -277,6 +277,7 @@ const EditPanel: React.FC<EditPanelProps> = React.forwardRef<{
               <label className={labelClass}>כותרת עמודה: {settings.columnTitleSize}%</label>
               <input type="range" min="50" max="200" step="5" value={settings.columnTitleSize} onChange={(e) => handleSettingChange('columnTitleSize', parseInt(e.target.value))} className="w-full" />
             </div>
+
             <div className="text-sm text-stone-500 italic">
               גודל הטקסט הכללי מותאם אוטומטית כדי למנוע הסתרת תוכן
             </div>
