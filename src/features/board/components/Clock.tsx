@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import HebrewDate from './HebrewDate';
 
-import { BoardSettings } from '../types';
+import { BoardSettings } from '../../../shared/types/types';
 
 interface ClockProps {
   settings: BoardSettings;
@@ -25,9 +25,9 @@ const Clock: React.FC<ClockProps> = ({ settings, scale = 1 }) => {
   const scaledFontSize = baseFontSize * scale;
 
   return (
-    <div 
-      className="inline-flex flex-col items-center leading-none font-mono font-bold text-stone-800 tracking-wider rounded-lg shadow-sm border border-black/5" 
-      style={{ 
+    <div
+      className="inline-flex flex-col items-center leading-none font-mono font-bold text-stone-800 tracking-wider rounded-lg shadow-sm border border-black/5"
+      style={{
         backgroundColor: settings.clockBackgroundColor,
         padding: `${scale * 8}px`,
         fontSize: `${3 * scaledFontSize}px`

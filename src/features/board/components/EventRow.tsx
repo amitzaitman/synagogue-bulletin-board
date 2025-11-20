@@ -1,5 +1,5 @@
 import React from 'react';
-import { EventItem, BoardSettings } from '../types';
+import { EventItem, BoardSettings } from '../../../shared/types/types';
 
 // --- Helper Icons ---
 const StarIcon = ({ filled = false }: { filled?: boolean }) => filled ?
@@ -40,7 +40,7 @@ const EventRow: React.FC<EventRowProps> = ({
     const highlightStyle = event.isHighlighted ? { backgroundColor: settings.highlightColor, borderRadius: '0.375rem' } : {};
 
     const getEventColor = () => {
-        switch(event.type) {
+        switch (event.type) {
             case 'prayer': return settings.prayerColor;
             case 'class': return settings.classColor;
             case 'freeText': return settings.freeTextColor;
@@ -82,13 +82,13 @@ const EventRow: React.FC<EventRowProps> = ({
 
     return (
         <div
-          className={wrapperClasses}
-          style={highlightStyle}
-          draggable={isEditMode}
-          onDragStart={(e) => onDragStart(e, event.id)}
-          onDragOver={onDragOver}
-          onDrop={(e) => onDrop(e, event)}
-          onClick={handleRowClick}
+            className={wrapperClasses}
+            style={highlightStyle}
+            draggable={isEditMode}
+            onDragStart={(e) => onDragStart(e, event.id)}
+            onDragOver={onDragOver}
+            onDrop={(e) => onDrop(e, event)}
+            onClick={handleRowClick}
         >
             {isEditMode && <div style={{ paddingLeft: '0.5em', paddingRight: '0.5em' }}><DragHandleIcon /></div>}
             {content}

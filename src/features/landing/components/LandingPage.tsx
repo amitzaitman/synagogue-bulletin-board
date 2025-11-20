@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { db } from '../firebase';
+import { db } from '../../../shared/firebase';
 import { collection, getDocs, doc, getDoc, setDoc } from 'firebase/firestore';
 
 interface Synagogue {

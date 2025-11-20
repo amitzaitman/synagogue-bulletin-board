@@ -1,0 +1,49 @@
+src/features/board/hooks/useBoardSettings.ts(2,18): error TS1005: ';' expected.
+src/features/board/hooks/useBoardSettings.ts(3,19): error TS1005: ';' expected.
+src/features/board/hooks/useBoardSettings.ts(4,12): error TS1005: ';' expected.
+src/features/board/hooks/useBoardSettings.ts(6,20): error TS1005: ';' expected.
+src/features/board/hooks/useBoardSettings.ts(7,21): error TS1005: ';' expected.
+src/features/board/hooks/useBoardSettings.ts(8,26): error TS1005: ';' expected.
+src/features/board/hooks/useBoardSettings.ts(9,31): error TS1005: ';' expected.
+src/features/board/hooks/useBoardSettings.ts(10,31): error TS1005: ';' expected.
+src/features/board/hooks/useBoardSettings.ts(11,33): error TS1005: ';' expected.
+src/features/board/hooks/useBoardSettings.ts(13,40): error TS1005: ';' expected.
+src/features/board/hooks/useBoardSettings.ts(14,43): error TS1005: ';' expected.
+src/features/board/hooks/useBoardSettings.ts(15,46): error TS1005: ';' expected.
+src/features/board/hooks/useBoardSettings.ts(16,47): error TS1005: ';' expected.
+src/features/board/hooks/useBoardSettings.ts(17,50): error TS1005: ';' expected.
+src/features/board/hooks/useBoardSettings.ts(18,50): error TS1005: ';' expected.
+src/features/board/hooks/useBoardSettings.ts(19,42): error TS1005: ';' expected.
+src/features/board/hooks/useBoardSettings.ts(20,43): error TS1005: ';' expected.
+src/features/board/hooks/useBoardSettings.ts(21,46): error TS1005: ';' expected.
+src/features/board/hooks/useBoardSettings.ts(22,1): error TS1109: Expression expected.
+src/features/board/hooks/useEvents.ts(1,16): error TS1005: ';' expected.
+src/features/board/hooks/useEvents.ts(1,49): error TS1005: ';' expected.
+src/features/board/hooks/useEvents.ts(1,83): error TS1005: ';' expected.
+src/features/board/hooks/useEvents.ts(1,94): error TS1128: Declaration or statement expected.
+src/features/board/hooks/useEvents.ts(1,119): error TS1005: ';' expected.
+src/features/board/hooks/useEvents.ts(1,145): error TS1005: ';' expected.
+src/features/board/hooks/useEvents.ts(1,150): error TS1128: Declaration or statement expected.
+src/features/board/hooks/useEvents.ts(2,16): error TS1005: ';' expected.
+src/features/board/hooks/useEvents.ts(2,40): error TS1005: ';' expected.
+src/features/board/hooks/useEvents.ts(2,74): error TS1005: ';' expected.
+src/features/board/hooks/useEvents.ts(2,85): error TS1128: Declaration or statement expected.
+src/features/board/hooks/useEvents.ts(2,111): error TS1005: ';' expected.
+src/features/board/hooks/useEvents.ts(2,137): error TS1005: ';' expected.
+src/features/board/hooks/useEvents.ts(2,142): error TS1128: Declaration or statement expected.
+src/features/board/hooks/useEvents.ts(3,16): error TS1005: ';' expected.
+src/features/board/hooks/useEvents.ts(3,52): error TS1005: ';' expected.
+src/features/board/hooks/useEvents.ts(3,86): error TS1005: ';' expected.
+src/features/board/hooks/useEvents.ts(3,97): error TS1128: Declaration or statement expected.
+src/features/board/hooks/useEvents.ts(3,122): error TS1005: ';' expected.
+src/features/board/hooks/useEvents.ts(3,148): error TS1005: ';' expected.
+src/features/board/hooks/useEvents.ts(3,153): error TS1128: Declaration or statement expected.
+src/features/board/hooks/useEvents.ts(4,16): error TS1005: ';' expected.
+src/features/board/hooks/useEvents.ts(4,49): error TS1005: ';' expected.
+src/features/board/hooks/useEvents.ts(4,83): error TS1005: ';' expected.
+src/features/board/hooks/useEvents.ts(4,94): error TS1128: Declaration or statement expected.
+src/features/board/hooks/useEvents.ts(4,120): error TS1005: ';' expected.
+src/features/board/hooks/useEvents.ts(4,146): error TS1005: ';' expected.
+src/features/board/hooks/useEvents.ts(4,151): error TS1128: Declaration or statement expected.
+src/features/board/hooks/useEvents.ts(5,1): error TS1128: Declaration or statement expected.
+src/features/board/hooks/useZmanim.ts(156,1): error TS1128: Declaration or statement expected.

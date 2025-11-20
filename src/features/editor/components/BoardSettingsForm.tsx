@@ -1,21 +1,21 @@
 import React, { useImperativeHandle, useRef } from 'react';
-import { BoardSettings, ZmanimData } from '../types';
+import { BoardSettings, ZmanimData } from '../../../shared/types/types';
 
 // Helper functions for color conversion
 const rgbaToHex = (rgba: string): string => {
   // Extract RGB values from rgba(r, g, b, a) format
   const match = rgba.match(/rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)(?:\s*,\s*[\d.]+)?\s*\)/);
   if (!match) return '#ffffff';
-  
+
   const r = parseInt(match[1], 10);
   const g = parseInt(match[2], 10);
   const b = parseInt(match[3], 10);
-  
+
   const toHex = (n: number): string => {
     const hex = n.toString(16).padStart(2, '0');
     return hex;
   };
-  
+
   return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
 };
 
@@ -36,7 +36,7 @@ const ColorOpacityControl: React.FC<ColorOpacityControlProps> = ({
   defaultOpacity = 0.7
 }) => {
   const labelClass = "block text-sm font-medium text-stone-700 mb-1";
-  
+
   // Extract RGB and opacity from rgba string
   const getColorParts = (rgba: string): { rgb: string; opacity: number } => {
     // Extract RGB and alpha values from rgba(r, g, b, a) format
@@ -46,7 +46,7 @@ const ColorOpacityControl: React.FC<ColorOpacityControlProps> = ({
       const g = parseInt(match[2], 10);
       const b = parseInt(match[3], 10);
       const a = match[4] ? parseFloat(match[4]) : 1;
-      
+
       return {
         rgb: `${r}, ${g}, ${b}`,
         opacity: a
@@ -81,19 +81,19 @@ const ColorOpacityControl: React.FC<ColorOpacityControlProps> = ({
       <label className={labelClass}>{label}</label>
       <div className="flex gap-2">
         <div className="flex-1">
-          <input 
-            type="color" 
-            value={hexColor} 
-            onChange={(e) => handleColorChange(e.target.value)} 
+          <input
+            type="color"
+            value={hexColor}
+            onChange={(e) => handleColorChange(e.target.value)}
             className="w-full h-10"
           />
         </div>
         <div className="w-20 flex flex-col items-center">
-          <input 
-            type="range" 
-            min="0" 
-            max="100" 
-            value={Math.round(opacity * 100)} 
+          <input
+            type="range"
+            min="0"
+            max="100"
+            value={Math.round(opacity * 100)}
             onChange={(e) => handleOpacityChange(parseInt(e.target.value) / 100)}
             className="w-full"
           />
@@ -193,7 +193,7 @@ const EditPanel: React.FC<EditPanelProps> = React.forwardRef<{
     let newSettings = { ...settings, [field]: value };
 
     if (field === 'theme' && (value === 'light' || value === 'dark' || value === 'brightBlue')) {
-      newSettings = { ...newSettings, ...themes[value] };
+      newSettings = { ...newSettings, ...themes[value as keyof typeof themes] };
     } else if (field.includes('Color')) {
       newSettings.theme = 'custom';
     }

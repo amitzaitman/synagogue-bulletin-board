@@ -1,4 +1,4 @@
-import { EventItem, Column, ZmanimData, BoardSettings, DateSpecificZmanim } from '../types';
+import { EventItem, Column, ZmanimData, BoardSettings, DateSpecificZmanim } from '../types/types';
 import { Location, Zmanim } from '@hebcal/core';
 
 export const roundTime = (date: Date, rounding: { direction: 'up' | 'down' | 'nearest'; increment: number; }): Date => {
@@ -157,7 +157,7 @@ export const calculateAllEventTimes = (
                 resultDate = new Date(zmanTime.getTime() + offsetMinutes * 60000);
             }
         }
-        
+
         if (resultDate && rounding) {
             resultDate = roundTime(resultDate, rounding);
         }
@@ -172,7 +172,7 @@ export const calculateAllEventTimes = (
             calculateTime(event.id);
         }
     }
-    
+
     // Return a map of string times, not Date objects
     const finalTimes = new Map<string, string | null>();
     for (const event of events) {

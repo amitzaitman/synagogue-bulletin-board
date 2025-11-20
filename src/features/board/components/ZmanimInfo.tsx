@@ -1,5 +1,5 @@
 import React from 'react';
-import { ZmanimData, BoardSettings } from '../types';
+import { ZmanimData, BoardSettings } from '../../../shared/types/types';
 
 interface ZmanimInfoProps {
     zmanimData: ZmanimData | null;
@@ -19,9 +19,9 @@ const ZmanimInfo: React.FC<ZmanimInfoProps> = ({ zmanimData, loading, error, set
     const scaledFontSize = baseFontSize * scale;
 
     return (
-        <div 
-            className="inline-block text-right rounded-lg shadow-sm border border-black/5" 
-            style={{ 
+        <div
+            className="inline-block text-right rounded-lg shadow-sm border border-black/5"
+            style={{
                 backgroundColor: settings.zmanimBackgroundColor,
                 padding: `${scale * 16}px`,
                 fontSize: `${scaledFontSize}px`
@@ -38,16 +38,16 @@ const ZmanimInfo: React.FC<ZmanimInfoProps> = ({ zmanimData, loading, error, set
                         <p className="text-amber-600 font-semibold leading-tight" style={{ marginTop: `${scale * 4}px`, fontSize: `${1.4 * scaledFontSize}px` }}>{zmanimData.holidayEvents.join(', ')}</p>
                     )}
                     <div className="flex flex-col" style={{ marginTop: `${scale * 12}px` }}>
-                         {zmanimData.shabbatCandles && (
+                        {zmanimData.shabbatCandles && (
                             <div className="flex items-baseline" style={{ gap: `${scale * 8}px` }}>
-                                 <span className="text-stone-600" style={{ fontSize: `${1.3 * scaledFontSize}px` }}>כניסת שבת:</span>
-                                 <span className="font-mono font-bold text-stone-800" style={{ fontSize: `${1.5 * scaledFontSize}px` }}>{formatTime(zmanimData.shabbatCandles)}</span>
+                                <span className="text-stone-600" style={{ fontSize: `${1.3 * scaledFontSize}px` }}>כניסת שבת:</span>
+                                <span className="font-mono font-bold text-stone-800" style={{ fontSize: `${1.5 * scaledFontSize}px` }}>{formatTime(zmanimData.shabbatCandles)}</span>
                             </div>
                         )}
-                         {zmanimData.shabbatEnd && (
+                        {zmanimData.shabbatEnd && (
                             <div className="flex items-baseline" style={{ gap: `${scale * 8}px` }}>
-                                 <span className="text-stone-600" style={{ fontSize: `${1.3 * scaledFontSize}px` }}>צאת שבת:</span>
-                                 <span className="font-mono font-bold text-stone-800" style={{ fontSize: `${1.5 * scaledFontSize}px` }}>{formatTime(zmanimData.shabbatEnd)}</span>
+                                <span className="text-stone-600" style={{ fontSize: `${1.3 * scaledFontSize}px` }}>צאת שבת:</span>
+                                <span className="font-mono font-bold text-stone-800" style={{ fontSize: `${1.5 * scaledFontSize}px` }}>{formatTime(zmanimData.shabbatEnd)}</span>
                             </div>
                         )}
                     </div>

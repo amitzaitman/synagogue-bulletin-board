@@ -1,9 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { doc, writeBatch } from 'firebase/firestore';
-import { db } from '../firebase';
-
-import { Column } from '../types';
-import { createOfflineStorage } from '../utils/offlineStorage';
+import { db } from '../../../shared/firebase';
+import { Column } from '../../../shared/types/types';
+import { createOfflineStorage } from '../../../shared/utils/offlineStorage';
 
 export const defaultColumns: Column[] = [
   { id: 'col-erev-shabbat', title: 'ערב שבת', order: 0, columnType: 'shabbat' },

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { EventItem, TimeDefinition, ZmanimKey, RoundingOptions } from '../types';
+import { EventItem, TimeDefinition, ZmanimKey, RoundingOptions } from '../../../shared/types/types';
 
 // --- Helper Icons ---
 const TrashIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>;
@@ -108,7 +108,7 @@ const EventForm: React.FC<EventFormProps> = ({ columnId, columnEvents, event, on
 
                     // When creating a relative time definition default to rounding up in 5-minute increments
                     // to match common expectations (e.g. 8:12 -> 8:15 when rounding up by 5).
-                    switch(newMode) {
+                    switch (newMode) {
                         case 'absolute': newTimeDef = { mode: 'absolute', absoluteTime: '12:00' }; break;
                         case 'relative': newTimeDef = { mode: 'relative', relativeEventId: otherTimedEvents[0]?.id || '', offsetMinutes: 0 }; break;
                         case 'relativeToZman': newTimeDef = { mode: 'relativeToZman', zman: 'sunset', offsetMinutes: 0 }; break;
@@ -199,7 +199,7 @@ const EventForm: React.FC<EventFormProps> = ({ columnId, columnEvents, event, on
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-stone-800 mb-1">{isTimedEvent ? "שם האירוע" : "תוכן טקסט"}</label>
-                                <input type="text" name="name" value={formData.name} onChange={handleChange} placeholder={isTimedEvent ? "הזן שם אירוע..." : "הזן תוכן..."} required className="w-full border-2 border-stone-300 rounded-lg p-2 text-sm focus:border-amber-500 focus:ring-2 focus:ring-amber-200 transition-all"/>
+                                <input type="text" name="name" value={formData.name} onChange={handleChange} placeholder={isTimedEvent ? "הזן שם אירוע..." : "הזן תוכן..."} required className="w-full border-2 border-stone-300 rounded-lg p-2 text-sm focus:border-amber-500 focus:ring-2 focus:ring-amber-200 transition-all" />
                             </div>
 
 
@@ -219,7 +219,7 @@ const EventForm: React.FC<EventFormProps> = ({ columnId, columnEvents, event, on
                                         {timeDef?.mode === 'absolute' && (
                                             <div>
                                                 <label className="block text-xs font-medium text-stone-700 mb-1">שעה</label>
-                                                <input type="time" name="absoluteTime" value={timeDef.absoluteTime || ''} onChange={handleChange} required className="w-full border-2 border-stone-300 rounded-lg p-2 text-base font-mono focus:border-amber-500 focus:ring-2 focus:ring-amber-200 transition-all"/>
+                                                <input type="time" name="absoluteTime" value={timeDef.absoluteTime || ''} onChange={handleChange} required className="w-full border-2 border-stone-300 rounded-lg p-2 text-base font-mono focus:border-amber-500 focus:ring-2 focus:ring-amber-200 transition-all" />
                                             </div>
                                         )}
                                         {(timeDef?.mode === 'relative' || timeDef?.mode === 'relativeToZman') && (
@@ -232,13 +232,13 @@ const EventForm: React.FC<EventFormProps> = ({ columnId, columnEvents, event, on
                                                         <option value="before">לפני</option>
                                                     </select>
                                                 </div>
-                                                { timeDef.mode === 'relative' && (
+                                                {timeDef.mode === 'relative' && (
                                                     <select name="relativeEventId" value={timeDef.relativeEventId || ''} onChange={handleChange} className="border border-stone-300 rounded p-1 w-full text-sm" aria-label="אירוע יחסי">
                                                         {otherTimedEventsInColumn.length === 0 && <option disabled>אין אירועים להצמדה</option>}
                                                         {otherTimedEventsInColumn.map(e => <option key={e.id} value={e.id}>{e.name}</option>)}
                                                     </select>
                                                 )}
-                                                { timeDef.mode === 'relativeToZman' && (
+                                                {timeDef.mode === 'relativeToZman' && (
                                                     <select name="zman" value={timeDef.zman} onChange={handleChange} className="border border-stone-300 rounded p-1 w-full text-sm">
                                                         {Object.entries(zmanimLabels).map(([key, label]) => (<option key={key} value={key}>{label}</option>))}
                                                     </select>
@@ -264,7 +264,7 @@ const EventForm: React.FC<EventFormProps> = ({ columnId, columnEvents, event, on
                                         )}
                                         <div className="col-span-2">
                                             <label className="block text-xs font-medium text-stone-700 mb-1">הערה (אופציונלי)</label>
-                                            <input type="text" name="note" value={formData.note || ''} onChange={handleChange} placeholder="הזן הערה..." className="w-full border-2 border-stone-300 rounded-lg p-2 text-sm focus:border-amber-500 focus:ring-2 focus:ring-amber-200 transition-all"/>
+                                            <input type="text" name="note" value={formData.note || ''} onChange={handleChange} placeholder="הזן הערה..." className="w-full border-2 border-stone-300 rounded-lg p-2 text-sm focus:border-amber-500 focus:ring-2 focus:ring-amber-200 transition-all" />
                                         </div>
                                     </div>
                                 </fieldset>

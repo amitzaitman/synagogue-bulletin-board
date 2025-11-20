@@ -1,16 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { db } from './firebase';
+import { db } from './shared/firebase';
 import { HashRouter as Router, Routes, Route, useParams, useNavigate } from 'react-router-dom';
 import { doc, getDoc, collection, getDocs } from 'firebase/firestore';
-import BoardView from './components/BoardView';
-import OnlineStatus from './components/OnlineStatus';
-import { useEvents } from './hooks/useEvents';
-import { useColumns } from './hooks/useColumns';
-import { useBoardSettings } from './hooks/useBoardSettings';
-import { useZmanim } from './hooks/useZmanim';
-import { useLastSync } from './hooks/useLastSync';
-import LandingPage from './components/LandingPage';
-import { saveSelectedSynagogue } from './utils/offlineStorage';
+import BoardView from './features/board/components/BoardView';
+import OnlineStatus from './shared/components/OnlineStatus';
+import { useEvents } from './features/board/hooks/useEvents';
+import { useColumns } from './features/board/hooks/useColumns';
+import { useBoardSettings } from './features/board/hooks/useBoardSettings';
+import { useZmanim } from './features/board/hooks/useZmanim';
+import { useLastSync } from './shared/hooks/useLastSync';
+import LandingPage from './features/landing/components/LandingPage';
+import { saveSelectedSynagogue } from './shared/utils/offlineStorage';
 
 const BoardPage: React.FC = () => {
   const { slugOrId } = useParams<{ slugOrId: string }>();
@@ -88,11 +88,11 @@ const BoardPage: React.FC = () => {
     <>
 
       <div className="h-screen w-screen overflow-hidden flex items-center justify-center" style={{ backgroundColor: settings.mainBackgroundColor }}>
-        <div 
+        <div
           id="board-container"
-          className="rounded-2xl shadow-[inset_0_6px_12px_rgba(80,50,20,0.12)] backdrop-blur-lg relative" 
-          style={{ 
-            backgroundColor: settings.boardBackgroundColor, 
+          className="rounded-2xl shadow-[inset_0_6px_12px_rgba(80,50,20,0.12)] backdrop-blur-lg relative"
+          style={{
+            backgroundColor: settings.boardBackgroundColor,
             aspectRatio: '16/9',
             width: '100vw',
             height: 'calc(100vw * 9 / 16)',
@@ -102,7 +102,7 @@ const BoardPage: React.FC = () => {
           }}
         >
           <div className="w-full h-full">
-            
+
             <BoardView
               events={events}
               columns={columns}

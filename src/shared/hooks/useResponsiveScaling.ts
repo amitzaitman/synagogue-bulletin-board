@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Column, EventItem } from '../types';
+import { Column, EventItem } from '../types/types';
 
 interface UseResponsiveScalingProps {
   containerWidth: number;

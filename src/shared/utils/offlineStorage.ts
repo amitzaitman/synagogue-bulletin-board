@@ -79,8 +79,8 @@ export function createOfflineStorage<T>(options: OfflineStorageOptions<T>) {
 
       if (Array.isArray(data)) {
         if (!firebaseCollectionPath) {
-            console.warn(`firebaseCollectionPath is not defined for ${localStorageKey}, skipping array sync.`);
-            return false;
+          console.warn(`firebaseCollectionPath is not defined for ${localStorageKey}, skipping array sync.`);
+          return false;
         }
         const batch = writeBatch(db);
         const collectionRef = collection(db, path);
@@ -91,14 +91,14 @@ export function createOfflineStorage<T>(options: OfflineStorageOptions<T>) {
 
         // 2. Go through local data: add or update
         (data as any[]).forEach(item => {
-            const docRef = doc(collectionRef, item.id);
-            batch.set(docRef, serialize(item));
-            serverIds.delete(item.id); // Remove from set, remaining are deletions
+          const docRef = doc(collectionRef, item.id);
+          batch.set(docRef, serialize(item));
+          serverIds.delete(item.id); // Remove from set, remaining are deletions
         });
 
         // 3. Delete documents that are on the server but not locally
         serverIds.forEach(idToDelete => {
-            batch.delete(doc(collectionRef, idToDelete));
+          batch.delete(doc(collectionRef, idToDelete));
         });
 
         await batch.commit();
@@ -127,14 +127,14 @@ export function createOfflineStorage<T>(options: OfflineStorageOptions<T>) {
       const path = Array.isArray(defaultValue) && firebaseCollectionPath ? firebaseCollectionPath(entityId) : (firebasePath ? firebasePath(entityId) : null);
       if (!path) {
         console.warn(`Firebase path not defined for ${localStorageKey}, skipping listener.`);
-        return () => {};
+        return () => { };
       }
 
       // Check if this is a collection or document
       if (Array.isArray(defaultValue)) {
         if (!firebaseCollectionPath) {
-            console.warn(`firebaseCollectionPath is not defined for ${localStorageKey}, skipping array listener.`);
-            return () => {};
+          console.warn(`firebaseCollectionPath is not defined for ${localStorageKey}, skipping array listener.`);
+          return () => { };
         }
         // Listen to collection
         const q = query(collection(db, path));
@@ -153,9 +153,9 @@ export function createOfflineStorage<T>(options: OfflineStorageOptions<T>) {
               const now = new Date();
               localStorage.setItem('lastSuccessfulSync', now.toISOString());
             } else {
-                // Collection is empty, so revert to default
-                saveToLocal(defaultValue);
-                onUpdate(defaultValue);
+              // Collection is empty, so revert to default
+              saveToLocal(defaultValue);
+              onUpdate(defaultValue);
             }
           },
           (error) => {
@@ -190,7 +190,7 @@ export function createOfflineStorage<T>(options: OfflineStorageOptions<T>) {
     } catch (error) {
       console.warn(`Failed to setup Firebase listener for ${localStorageKey}:`, error);
       // Return empty cleanup function
-      return () => {};
+      return () => { };
     }
   }
 
@@ -219,60 +219,59 @@ export function onOnlineStatusChange(callback: (online: boolean) => void): () =>
   window.addEventListener('online', handleOnline);
   window.addEventListener('offline', handleOffline);
 
-            return () => {
+  return () => {
 
-              window.removeEventListener('online', handleOnline);
+    window.removeEventListener('online', handleOnline);
 
-              window.removeEventListener('offline', handleOffline);
+    window.removeEventListener('offline', handleOffline);
 
-            };
+  };
 
-          }
+}
 
-          
 
-          const SELECTED_SYNAGOGUE_KEY = 'selectedSynagogue';
 
-          
+const SELECTED_SYNAGOGUE_KEY = 'selectedSynagogue';
 
-          export function saveSelectedSynagogue(slug: string): void {
 
-            try {
 
-              localStorage.setItem(SELECTED_SYNAGOGUE_KEY, slug);
+export function saveSelectedSynagogue(slug: string): void {
 
-            } catch (error) {
+  try {
 
-              console.error('Error saving selected synagogue to localStorage:', error);
+    localStorage.setItem(SELECTED_SYNAGOGUE_KEY, slug);
 
-            }
+  } catch (error) {
 
-          }
+    console.error('Error saving selected synagogue to localStorage:', error);
 
-          
+  }
 
-          export function getSelectedSynagogue(): string | null {
+}
 
-            try {
 
-              return localStorage.getItem(SELECTED_SYNAGOGUE_KEY);
 
-            } catch (error) {
+export function getSelectedSynagogue(): string | null {
 
-              console.error('Error getting selected synagogue from localStorage:', error);
+  try {
 
-              return null;
+    return localStorage.getItem(SELECTED_SYNAGOGUE_KEY);
 
-            }
+  } catch (error) {
 
-          }
+    console.error('Error getting selected synagogue from localStorage:', error);
 
-          
+    return null;
 
-        
+  }
 
-      
+}
 
-    
 
-  
+
+
+
+
+
+
+

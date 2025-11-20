@@ -1,10 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { doc, writeBatch } from 'firebase/firestore';
 import isEqual from 'fast-deep-equal';
-import { db } from '../firebase';
-
-import { EventItem } from '../types';
-import { createOfflineStorage } from '../utils/offlineStorage';
+import { db } from '../../../shared/firebase';
+import { EventItem } from '../../../shared/types/types';
+import { createOfflineStorage } from '../../../shared/utils/offlineStorage';
 
 export const defaultEvents: EventItem[] = [
   { id: '1', name: 'מנחה וקבלת שבת', timeDefinition: { mode: 'absolute', absoluteTime: '18:00' }, type: 'prayer', columnId: 'col-erev-shabbat', order: 0 },
@@ -18,7 +17,7 @@ export const defaultEvents: EventItem[] = [
 ];
 
 // Create offline storage for events
-const eventsStorage = createOfflineStorage<EventItem[]>({ 
+const eventsStorage = createOfflineStorage<EventItem[]>({
   localStorageKey: 'boardEvents',
   firebaseCollectionPath: (synagogueId) => `synagogues/${synagogueId}/events`,
   defaultValue: defaultEvents,
@@ -61,4 +60,3 @@ export const useEvents = (synagogueId: string | undefined) => {
 
   return { events, saveEvents, lastRefresh, loading };
 };
-

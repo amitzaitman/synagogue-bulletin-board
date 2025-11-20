@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Column, ColumnType } from '../types';
+import { Column, ColumnType } from '../../../shared/types/types';
 
 interface EditingColumnState {
     id: string;

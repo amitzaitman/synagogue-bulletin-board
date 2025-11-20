@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Location, Zmanim, HebrewCalendar, HDate, flags, Event } from '@hebcal/core';
-import { BoardSettings, ZmanimData } from '../types';
+import { BoardSettings, ZmanimData } from '../../../shared/types/types';
 
 // Helper function to remove Hebrew vowel points and cantillation marks
 const removeNikud = (text: string): string => text.replace(/[\u0591-\u05BD\u05BF-\u05C7]/g, '');
@@ -22,10 +22,10 @@ export const useZmanim = (settings: BoardSettings) => {
                 if (elevation) {
                     location.setElevation(elevation);
                 }
-                
+
                 const now = new Date();
                 const today = now.getDay(); // Sunday=0, ..., Saturday=6
-                
+
                 // --- Shabbat-specific calculations ---
 
                 // Consistently find the upcoming Shabbat. If today is Saturday, it's today.
@@ -58,7 +58,7 @@ export const useZmanim = (settings: BoardSettings) => {
 
                 // Get Hebrew date for Shabbat
                 const shabbatHebrewDate = new HDate(saturday);
-                
+
                 // Get special events for Shabbat (holidays, fasts, etc.)
                 const allShabbatEvents = [...fridayEvents, ...saturdayEvents];
                 const specialEvents = allShabbatEvents
@@ -66,11 +66,11 @@ export const useZmanim = (settings: BoardSettings) => {
                         const desc = ev.getDesc();
                         // Filter out standard weekly events that are displayed elsewhere
                         return desc !== 'Candle lighting' &&
-                               desc !== 'Havdalah' &&
-                               !(ev.getFlags() & flags.PARSHA_HASHAVUA);
+                            desc !== 'Havdalah' &&
+                            !(ev.getFlags() & flags.PARSHA_HASHAVUA);
                     })
                     .map(ev => removeNikud(ev.render('he')));
-                
+
                 const uniqueSpecialEvents = [...new Set(specialEvents)];
 
                 // --- Weekdays calculations (Sun-Thu, or next week's Sun-Thu if today is Fri/Sat) ---
@@ -138,9 +138,9 @@ export const useZmanim = (settings: BoardSettings) => {
                 };
 
                 if (!newZmanimData.sunrise || !newZmanimData.sunset) {
-                     throw new Error("Could not calculate sunrise/sunset from Hebcal library");
+                    throw new Error("Could not calculate sunrise/sunset from Hebcal library");
                 }
-                
+
                 setZmanimData(newZmanimData);
                 setError(null);
 
@@ -155,7 +155,7 @@ export const useZmanim = (settings: BoardSettings) => {
         if (latitude && longitude) {
             fetchZmanim(latitude, longitude);
             // Refresh every 10 minutes to keep zmanim up to date, and on day change
-            const intervalId = setInterval(() => fetchZmanim(latitude, longitude), 10 * 60 * 1000); 
+            const intervalId = setInterval(() => fetchZmanim(latitude, longitude), 10 * 60 * 1000);
             return () => clearInterval(intervalId);
         }
 

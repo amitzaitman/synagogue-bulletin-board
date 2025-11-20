@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { doc, setDoc } from 'firebase/firestore';
-import { db } from '../firebase';
+import { db } from '../../../shared/firebase';
 import isEqual from 'fast-deep-equal';
-import { BoardSettings } from '../types';
-import { createOfflineStorage } from '../utils/offlineStorage';
+import { BoardSettings } from '../../../shared/types/types';
+import { createOfflineStorage } from '../../../shared/utils/offlineStorage';
 
 export const defaultSettings: BoardSettings = {
   boardTitle: 'בית הכנסת - גבעת החי״ש',
@@ -43,9 +43,9 @@ const settingsStorage = createOfflineStorage<BoardSettings>({
 
     // Validate location data, falling back to defaults if invalid
     if (typeof loaded.latitude !== 'number' || typeof loaded.longitude !== 'number' ||
-        (loaded.latitude === 0 && loaded.longitude === 0)) {
-        loaded.latitude = defaultSettings.latitude;
-        loaded.longitude = defaultSettings.longitude;
+      (loaded.latitude === 0 && loaded.longitude === 0)) {
+      loaded.latitude = defaultSettings.latitude;
+      loaded.longitude = defaultSettings.longitude;
     }
 
     return loaded as BoardSettings;
