@@ -78,14 +78,30 @@ export const useResponsiveScaling = ({
       if (!measureRef.current) return Infinity;
       const container = measureRef.current;
       container.innerHTML = '';
-      container.style.width = `${columnWidth}px`; // We measure in a column-width box, but we add header height on top
+      // 1. Measure Main Header Height (using full container width)
+      container.innerHTML = '';
+      container.style.width = `${containerWidth}px`;
+      container.style.padding = `${LAYOUT_CONSTANTS.HEADER.PADDING_PX * scale}px`;
+      container.style.display = 'flex';
+      container.style.justifyContent = 'center';
+
+      const titleDiv = document.createElement('div');
+      titleDiv.style.width = '50%'; // Title takes 50% width
+      titleDiv.style.textAlign = 'center';
+      titleDiv.style.fontSize = `${settings.mainTitleSize * LAYOUT_CONSTANTS.HEADER.TITLE_SCALE_FACTOR * scale}px`;
+      titleDiv.style.fontWeight = 'bold';
+      titleDiv.style.lineHeight = '1.5';
+      titleDiv.innerText = settings.boardTitle || '';
+
+      container.appendChild(titleDiv);
+      const headerHeight = container.scrollHeight;
+
+      // Reset for column measurement
+      container.innerHTML = '';
+      container.style.width = `${columnWidth}px`;
+      container.style.padding = '0';
       container.style.display = 'flex';
       container.style.flexDirection = 'column';
-
-      // 1. Simulate Main Header Height
-      const headerPadding = LAYOUT_CONSTANTS.HEADER.PADDING_PX * 2 * scale; // p-4 scaled (top+bottom)
-      const titleFontSize = settings.mainTitleSize * LAYOUT_CONSTANTS.HEADER.TITLE_SCALE_FACTOR * scale;
-      const headerHeight = titleFontSize * 1.5 + headerPadding;
 
       // 2. Column Header
       const colHeaderPadding = LAYOUT_CONSTANTS.COLUMN.HEADER_PADDING_Y_PX * 2 * scale; // py-3 (12px) * 2 = 24px

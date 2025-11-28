@@ -28,7 +28,7 @@ const Header: React.FC<HeaderProps> = ({ settings, zmanimData, scale = 1 }) => {
             style={{ padding: `${padding}px` }}
         >
             {/* Clock Section (Left in RTL) */}
-            <div className="flex flex-col items-start min-w-[200px]">
+            <div className="flex flex-col items-start w-1/4">
                 <div
                     className="font-bold font-mono tracking-wider bg-white/10 rounded-lg"
                     style={{
@@ -41,7 +41,7 @@ const Header: React.FC<HeaderProps> = ({ settings, zmanimData, scale = 1 }) => {
             </div>
 
             {/* Title Section (Center) */}
-            <div className="flex-1 text-center">
+            <div className="w-1/2 text-center">
                 <h1
                     className="font-title font-bold drop-shadow-lg"
                     style={{ fontSize: `${settings.mainTitleSize * LAYOUT_CONSTANTS.HEADER.TITLE_SCALE_FACTOR * scale}px` }}
@@ -51,7 +51,7 @@ const Header: React.FC<HeaderProps> = ({ settings, zmanimData, scale = 1 }) => {
             </div>
 
             {/* Date Section (Right in RTL) */}
-            <div className="flex flex-col items-end min-w-[200px] text-right">
+            <div className="flex flex-col items-end w-1/4 text-right">
                 {zmanimData && (
                     <>
                         <div style={{ fontSize: `${LAYOUT_CONSTANTS.HEADER.DATE_FONT_SIZE_REM * scale}rem`, fontWeight: 'bold' }}>{zmanimData.hebrewDate}</div>
