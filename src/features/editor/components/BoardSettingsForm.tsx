@@ -167,14 +167,28 @@ const themes = {
 const EditPanel: React.FC<EditPanelProps> = React.forwardRef<{
   scrollToSection: (section: string) => void;
 }, EditPanelProps>(({ settings, onSave, activeSection }, ref) => {
+  const [activeTab, setActiveTab] = React.useState('general');
   const panelRef = useRef<HTMLDivElement>(null);
+
+  // Sync external activeSection prop with internal state if provided
+  React.useEffect(() => {
+    if (activeSection) {
+      if (activeSection === 'general-settings') setActiveTab('general');
+      else if (activeSection === 'font-sizes') setActiveTab('fonts');
+      else if (activeSection === 'text-colors') setActiveTab('colors');
+      else if (activeSection === 'background-colors') setActiveTab('background');
+      else if (activeSection === 'location') setActiveTab('location');
+    }
+  }, [activeSection]);
 
   useImperativeHandle(ref, () => ({
     scrollToSection: (section: string) => {
-      const sectionElement = document.getElementById(section);
-      if (sectionElement) {
-        sectionElement.scrollIntoView({ behavior: 'smooth' });
-      }
+      // Map legacy section names to tabs
+      if (section === 'general-settings') setActiveTab('general');
+      else if (section === 'font-sizes') setActiveTab('fonts');
+      else if (section === 'text-colors') setActiveTab('colors');
+      else if (section === 'background-colors') setActiveTab('background');
+      else if (section === 'location') setActiveTab('location');
     }
   }));
 
@@ -204,22 +218,37 @@ const EditPanel: React.FC<EditPanelProps> = React.forwardRef<{
   const inputClass = "w-full p-2 border rounded-md bg-white/50 text-sm";
   const labelClass = "block text-sm font-medium text-stone-700 mb-1";
 
-  // Determine which sections to show
-  const showGeneralSettings = !activeSection || activeSection === 'general-settings';
-  const showFontSizes = !activeSection || activeSection === 'font-sizes';
-  const showTextColors = !activeSection || activeSection === 'text-colors';
-  const showBackgroundColors = !activeSection || activeSection === 'background-colors';
-  const showLocation = !activeSection || activeSection === 'location';
+  const tabs = [
+    { id: 'general', label: 'כללי', icon: <SettingsIcon /> },
+    { id: 'fonts', label: 'גופנים', icon: <FontIcon /> },
+    { id: 'colors', label: 'צבעי טקסט', icon: <ColorIcon /> },
+    { id: 'background', label: 'רקעים', icon: <BackgroundIcon /> },
+    { id: 'location', label: 'מיקום וזמנים', icon: <LocationIcon /> },
+  ];
 
   return (
-    <div ref={panelRef} className="bg-stone-100/90 backdrop-blur-lg shadow-2xl flex flex-col">
-      <div className="flex-grow p-4 overflow-y-auto space-y-4">
-        {showGeneralSettings && (
-          <div id="general-settings" className="space-y-4">
-            <div className="flex items-center gap-2 text-stone-700">
-              <SettingsIcon />
-              <h3 className="text-sm font-semibold">הגדרות כלליות</h3>
-            </div>
+    <div ref={panelRef} className="flex flex-col h-full bg-stone-50">
+      {/* Tabs Header */}
+      <div className="flex border-b bg-white overflow-x-auto">
+        {tabs.map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            className={`flex items-center gap-2 px-6 py-4 text-sm font-medium transition-colors whitespace-nowrap ${activeTab === tab.id
+              ? 'text-brand-dark border-b-2 border-brand-dark bg-brand-bg/10'
+              : 'text-stone-500 hover:text-stone-700 hover:bg-stone-50'
+              }`}
+          >
+            {tab.icon}
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Tab Content */}
+      <div className="flex-1 overflow-y-auto p-6">
+        {activeTab === 'general' && (
+          <div className="space-y-6 max-w-2xl mx-auto animate-fade-in">
             <div>
               <label className={labelClass}>כותרת הלוח</label>
               <input
@@ -244,9 +273,9 @@ const EditPanel: React.FC<EditPanelProps> = React.forwardRef<{
                 <option value="custom" disabled>מותאם אישית</option>
               </select>
             </div>
-            <div>
+            <div className="bg-white p-4 rounded-lg border border-stone-200">
               <label className="flex items-center justify-between cursor-pointer">
-                <span className={labelClass + " mb-0"}>מיון ידני של אירועים</span>
+                <span className="font-medium text-stone-700">מיון ידני של אירועים</span>
                 <input
                   type="checkbox"
                   checked={settings.manualEventOrdering || false}
@@ -254,7 +283,7 @@ const EditPanel: React.FC<EditPanelProps> = React.forwardRef<{
                   className="w-5 h-5 text-amber-600 rounded focus:ring-amber-500"
                 />
               </label>
-              <div className="mt-1 text-xs text-stone-500 text-right">
+              <div className="mt-2 text-xs text-stone-500">
                 {settings.manualEventOrdering
                   ? '✓ מצב ידני: גרור אירועים כדי לשנות את הסדר'
                   : '○ מצב אוטומטי: אירועים מסודרים לפי שעה'}
@@ -263,125 +292,126 @@ const EditPanel: React.FC<EditPanelProps> = React.forwardRef<{
           </div>
         )}
 
-        {showFontSizes && (
-          <div id="font-sizes" className="space-y-4">
-            <div className="flex items-center gap-2 text-stone-700">
-              <FontIcon />
-              <h3 className="text-sm font-semibold">גודל גופנים</h3>
+        {activeTab === 'fonts' && (
+          <div className="space-y-6 max-w-2xl mx-auto animate-fade-in">
+            <div className="bg-blue-50 p-4 rounded-lg text-blue-800 text-sm mb-6">
+              <p><strong>שים לב:</strong> גודל הטקסט של האירועים מותאם אוטומטית כדי למלא את המסך. ההגדרות כאן משפיעות על היחס בין האלמנטים.</p>
             </div>
             <div>
-              <label className={labelClass}>כותרת ראשית: {settings.mainTitleSize}%</label>
+              <label className={labelClass}>גודל כותרת ראשית: {settings.mainTitleSize}%</label>
               <input type="range" min="50" max="200" step="5" value={settings.mainTitleSize} onChange={(e) => handleSettingChange('mainTitleSize', parseInt(e.target.value))} className="w-full" />
             </div>
             <div>
-              <label className={labelClass}>כותרת עמודה: {settings.columnTitleSize}%</label>
+              <label className={labelClass}>גודל כותרת עמודה: {settings.columnTitleSize}%</label>
               <input type="range" min="50" max="200" step="5" value={settings.columnTitleSize} onChange={(e) => handleSettingChange('columnTitleSize', parseInt(e.target.value))} className="w-full" />
-            </div>
-
-            <div className="text-sm text-stone-500 italic">
-              גודל הטקסט הכללי מותאם אוטומטית כדי למנוע הסתרת תוכן
             </div>
           </div>
         )}
 
-        {showTextColors && (
-          <div id="text-colors" className="space-y-4">
-            <div className="flex items-center gap-2 text-stone-700">
-              <ColorIcon />
-              <h3 className="text-sm font-semibold">צבעי טקסט</h3>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
+        {activeTab === 'colors' && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto animate-fade-in">
+            <div className="space-y-4">
+              <h3 className="font-semibold text-stone-900 border-b pb-2">טקסטים</h3>
               <div>
                 <label className={labelClass}>צבע תפילה</label>
-                <input type="color" value={settings.prayerColor} onChange={(e) => handleSettingChange('prayerColor', e.target.value)} className="w-full h-10" />
+                <input type="color" value={settings.prayerColor} onChange={(e) => handleSettingChange('prayerColor', e.target.value)} className="w-full h-10 rounded cursor-pointer" />
               </div>
               <div>
-                <label className={labelClass}>צבע שיעור</label>
-                <input type="color" value={settings.classColor} onChange={(e) => handleSettingChange('classColor', e.target.value)} className="w-full h-10" />
+                <label className={labelClass}>צבע אירוע</label>
+                <input type="color" value={settings.classColor} onChange={(e) => handleSettingChange('classColor', e.target.value)} className="w-full h-10 rounded cursor-pointer" />
               </div>
               <div>
                 <label className={labelClass}>צבע טקסט חופשי</label>
-                <input type="color" value={settings.freeTextColor} onChange={(e) => handleSettingChange('freeTextColor', e.target.value)} className="w-full h-10" />
+                <input type="color" value={settings.freeTextColor} onChange={(e) => handleSettingChange('freeTextColor', e.target.value)} className="w-full h-10 rounded cursor-pointer" />
               </div>
+            </div>
+            <div className="space-y-4">
+              <h3 className="font-semibold text-stone-900 border-b pb-2">כותרות והדגשות</h3>
               <div>
                 <label className={labelClass}>צבע כותרת עמודה</label>
-                <input type="color" value={settings.columnTitleColor} onChange={(e) => handleSettingChange('columnTitleColor', e.target.value)} className="w-full h-10" />
+                <input type="color" value={settings.columnTitleColor} onChange={(e) => handleSettingChange('columnTitleColor', e.target.value)} className="w-full h-10 rounded cursor-pointer" />
               </div>
               <div>
                 <label className={labelClass}>צבע כותרת ראשית</label>
-                <input type="color" value={settings.mainTitleColor} onChange={(e) => handleSettingChange('mainTitleColor', e.target.value)} className="w-full h-10" />
+                <input type="color" value={settings.mainTitleColor} onChange={(e) => handleSettingChange('mainTitleColor', e.target.value)} className="w-full h-10 rounded cursor-pointer" />
               </div>
               <div>
                 <label className={labelClass}>צבע הדגשה</label>
-                <input type="color" value={settings.highlightColor} onChange={(e) => handleSettingChange('highlightColor', e.target.value)} className="w-full h-10" />
+                <input type="color" value={settings.highlightColor} onChange={(e) => handleSettingChange('highlightColor', e.target.value)} className="w-full h-10 rounded cursor-pointer" />
               </div>
             </div>
           </div>
         )}
 
-        {showBackgroundColors && (
-          <div id="background-colors" className="space-y-4">
-            <div className="flex items-center gap-2 text-stone-700">
-              <BackgroundIcon />
-              <h3 className="text-sm font-semibold">צבעי רקע</h3>
-            </div>
+        {activeTab === 'background' && (
+          <div className="space-y-6 max-w-2xl mx-auto animate-fade-in">
             <div>
-              <label className={labelClass}>רקע כללי</label>
-              <input type="color" value={settings.mainBackgroundColor} onChange={(e) => handleSettingChange('mainBackgroundColor', e.target.value)} className="w-full h-10" />
-              <div className="mt-1 text-xs text-stone-500">צבע הרקע הכללי של המסך</div>
+              <label className={labelClass}>רקע כללי (מסך)</label>
+              <div className="flex gap-4 items-center">
+                <input type="color" value={settings.mainBackgroundColor} onChange={(e) => handleSettingChange('mainBackgroundColor', e.target.value)} className="w-16 h-16 rounded-lg cursor-pointer shadow-sm" />
+                <span className="text-sm text-stone-500">צבע הרקע שמאחורי הלוח</span>
+              </div>
             </div>
-            <ColorOpacityControl
-              label="רקע הלוח"
-              description="צבע הרקע של הלוח המרכזי"
-              value={settings.boardBackgroundColor}
-              onChange={(value) => handleSettingChange('boardBackgroundColor', value)}
-              defaultOpacity={0.7}
-            />
-            <ColorOpacityControl
-              label="רקע העמודות"
-              description="צבע הרקע של העמודות"
-              value={settings.columnBackgroundColor}
-              onChange={(value) => handleSettingChange('columnBackgroundColor', value)}
-              defaultOpacity={0.5}
-            />
-            <ColorOpacityControl
-              label="רקע השעון"
-              description="צבע הרקע של השעון"
-              value={settings.clockBackgroundColor}
-              onChange={(value) => handleSettingChange('clockBackgroundColor', value)}
-              defaultOpacity={0.3}
-            />
-            <ColorOpacityControl
-              label="רקע פאנל הזמנים"
-              description="צבע הרקע של פאנל הזמנים"
-              value={settings.zmanimBackgroundColor}
-              onChange={(value) => handleSettingChange('zmanimBackgroundColor', value)}
-              defaultOpacity={0.3}
-            />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <ColorOpacityControl
+                label="רקע הלוח"
+                description="הרקע של אזור התוכן המרכזי"
+                value={settings.boardBackgroundColor}
+                onChange={(value) => handleSettingChange('boardBackgroundColor', value)}
+                defaultOpacity={0.7}
+              />
+              <ColorOpacityControl
+                label="רקע העמודות"
+                description="הרקע של כל עמודה בנפרד"
+                value={settings.columnBackgroundColor}
+                onChange={(value) => handleSettingChange('columnBackgroundColor', value)}
+                defaultOpacity={0.5}
+              />
+              <ColorOpacityControl
+                label="רקע השעון"
+                description="הרקע של אזור השעון"
+                value={settings.clockBackgroundColor}
+                onChange={(value) => handleSettingChange('clockBackgroundColor', value)}
+                defaultOpacity={0.3}
+              />
+              <ColorOpacityControl
+                label="רקע פאנל הזמנים"
+                description="הרקע של אזור זמני היום"
+                value={settings.zmanimBackgroundColor}
+                onChange={(value) => handleSettingChange('zmanimBackgroundColor', value)}
+                defaultOpacity={0.3}
+              />
+            </div>
           </div>
         )}
 
-        {showLocation && (
-          <div id="location" className="space-y-4">
-            <div className="flex items-center gap-2 text-stone-700">
-              <LocationIcon />
-              <h3 className="text-sm font-semibold">מיקום (לחישוב זמנים)</h3>
+        {activeTab === 'location' && (
+          <div className="space-y-6 max-w-2xl mx-auto animate-fade-in">
+            <div className="bg-stone-50 p-4 rounded-lg border border-stone-200">
+              <h4 className="font-semibold mb-2">מיקום נוכחי</h4>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className={labelClass}>קו רוחב (Latitude)</label>
+                  <input type="number" step="0.001" value={settings.latitude} onChange={(e) => handleSettingChange('latitude', parseFloat(e.target.value) || 0)} className={inputClass} />
+                </div>
+                <div>
+                  <label className={labelClass}>קו אורך (Longitude)</label>
+                  <input type="number" step="0.001" value={settings.longitude} onChange={(e) => handleSettingChange('longitude', parseFloat(e.target.value) || 0)} className={inputClass} />
+                </div>
+                <div>
+                  <label className={labelClass}>גובה (מטרים)</label>
+                  <input type="number" value={settings.elevation} onChange={(e) => handleSettingChange('elevation', parseInt(e.target.value, 10) || 0)} className={inputClass} />
+                </div>
+              </div>
             </div>
-            <div>
-              <label className={labelClass}>קו רוחב (Latitude)</label>
-              <input type="number" step="0.001" value={settings.latitude} onChange={(e) => handleSettingChange('latitude', parseFloat(e.target.value) || 0)} className={inputClass} />
-            </div>
-            <div>
-              <label className={labelClass}>קו אורך (Longitude)</label>
-              <input type="number" step="0.001" value={settings.longitude} onChange={(e) => handleSettingChange('longitude', parseFloat(e.target.value) || 0)} className={inputClass} />
-            </div>
-            <div>
-              <label className={labelClass}>גובה (מטרים)</label>
-              <input type="number" value={settings.elevation} onChange={(e) => handleSettingChange('elevation', parseInt(e.target.value, 10) || 0)} className={inputClass} />
-            </div>
-            <div>
-              <label className={labelClass}>דקות לפני השקיעה (הדלקת נרות)</label>
-              <input type="number" value={settings.shabbatCandleOffset} onChange={(e) => handleSettingChange('shabbatCandleOffset', parseInt(e.target.value, 10) || 0)} className={inputClass} />
+
+            <div className="bg-stone-50 p-4 rounded-lg border border-stone-200">
+              <h4 className="font-semibold mb-2">הגדרות זמנים</h4>
+              <div>
+                <label className={labelClass}>דקות לפני השקיעה (הדלקת נרות)</label>
+                <input type="number" value={settings.shabbatCandleOffset} onChange={(e) => handleSettingChange('shabbatCandleOffset', parseInt(e.target.value, 10) || 0)} className={inputClass} />
+                <div className="mt-1 text-xs text-stone-500">ברירת מחדל: 20 דקות (כמנהג רוב הארץ)</div>
+              </div>
             </div>
           </div>
         )}

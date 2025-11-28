@@ -193,7 +193,7 @@ const EventForm: React.FC<EventFormProps> = ({ columnId, columnEvents, event, on
                                 <label className="block text-sm font-medium text-stone-800 mb-1">סוג אירוע</label>
                                 <select name="type" value={formData.type} onChange={handleChange} className="w-full border-2 border-stone-300 rounded-lg p-2 text-sm font-medium focus:border-amber-500 focus:ring-2 focus:ring-amber-200 transition-all">
                                     <option value="prayer">תפילה</option>
-                                    <option value="class">שיעור</option>
+                                    <option value="class">אירוע</option>
                                     <option value="freeText">טקסט חופשי</option>
                                 </select>
                             </div>

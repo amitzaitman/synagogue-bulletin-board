@@ -1,118 +1,161 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Column, EventItem } from '../types/types';
+import { Column, EventItem, BoardSettings } from '../types/types';
+import { LAYOUT_CONSTANTS } from '../constants/layout';
 
 interface UseResponsiveScalingProps {
   containerWidth: number;
   containerHeight: number;
-  headerHeight: number;
   columns: Column[];
   events: EventItem[];
-  zoomLevel: number;
+  settings: BoardSettings;
 }
 
 interface ScalingResult {
-  headerScale: number;
   contentScale: number;
 }
 
-const DESIGN_WIDTH = 1920; // 16:9 reference width
-const MIN_COLUMN_WIDTH = 400; // Minimum px width per column
-const DEBOUNCE_MS = 150;
+const DEBOUNCE_MS = 100;
 
 export const useResponsiveScaling = ({
   containerWidth,
   containerHeight,
-  headerHeight,
   columns,
   events,
-  zoomLevel,
+  settings,
 }: UseResponsiveScalingProps): ScalingResult => {
-  const [headerScale, setHeaderScale] = useState(1);
   const [contentScale, setContentScale] = useState(1);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const measureRef = useRef<HTMLDivElement | null>(null);
+
+  // Create measurement container on mount
+  useEffect(() => {
+    const div = document.createElement('div');
+    div.style.position = 'absolute';
+    div.style.visibility = 'hidden';
+    div.style.height = 'auto';
+    div.style.width = 'auto';
+    div.style.whiteSpace = 'normal';
+    div.style.top = '-9999px';
+    div.style.left = '-9999px';
+    div.style.boxSizing = 'border-box';
+    document.body.appendChild(div);
+    measureRef.current = div;
+
+    return () => {
+      document.body.removeChild(div);
+    };
+  }, []);
 
   const calculateScales = useCallback(() => {
-    if (containerWidth === 0 || containerHeight === 0) {
+    if (containerWidth === 0 || containerHeight === 0 || !measureRef.current || columns.length === 0) {
       return;
     }
 
-    // 1. Header scales by width only
-    const baseHeaderScale = containerWidth / DESIGN_WIDTH;
-    const finalHeaderScale = baseHeaderScale * zoomLevel;
+    // Calculate available height - we use the full container height
+    const availableHeight = containerHeight;
 
-    // 2. Content scales by density with upper bound
-    const availableHeight = containerHeight - headerHeight;
-    const numColumns = columns.length || 1;
+    if (availableHeight <= 0) return;
 
-    // Calculate width scale based on number of columns
-    const widthScale = containerWidth / (numColumns * MIN_COLUMN_WIDTH);
+    // Find heaviest column
+    const heaviestColumn = columns.reduce((prev, current) => {
+      const prevEvents = events.filter(e => e.columnId === prev.id);
+      const currEvents = events.filter(e => e.columnId === current.id);
+      const getWeight = (evs: EventItem[]) => evs.reduce((sum, e) => sum + 50 + (e.name?.length || 0), 0);
+      return getWeight(currEvents) > getWeight(prevEvents) ? current : prev;
+    }, columns[0]);
 
-    // Find the tallest column (most events)
-    const maxEventsInColumn = Math.max(
-      ...columns.map(col =>
-        events.filter(e => e.columnId === col.id).length
-      ),
-      1 // At least 1 to avoid division by zero
-    );
+    if (!heaviestColumn) return;
 
-    // Estimate row height based on typical event structure
-    // Typical event: name (1.8em) + time (2em) + padding (~1.2em) = ~5em
-    const estimatedRowHeightEm = 5;
-    const baseFontSize = 16;
-    const estimatedRowHeightPx = estimatedRowHeightEm * baseFontSize;
+    const targetEvents = events.filter(e => e.columnId === heaviestColumn.id).sort((a, b) => a.order - b.order);
 
-    // Calculate height scale
-    const columnHeaderHeightPx = 3 * baseFontSize; // ~3em for column header
-    const columnPaddingPx = 2 * baseFontSize; // ~2em for padding
-    const requiredContentHeight =
-      columnHeaderHeightPx +
-      columnPaddingPx +
-      (maxEventsInColumn * estimatedRowHeightPx);
+    // Calculate column width
+    const numColumns = columns.length;
+    const gapTotal = (numColumns - 1) * LAYOUT_CONSTANTS.GRID.GAP_PX;
+    const paddingTotal = LAYOUT_CONSTANTS.GRID.PADDING_PX * 2;
+    const columnWidth = (containerWidth - paddingTotal - gapTotal) / numColumns;
 
-    const heightScale = availableHeight / requiredContentHeight;
+    const measureHeightAtScale = (scale: number) => {
+      if (!measureRef.current) return Infinity;
+      const container = measureRef.current;
+      container.innerHTML = '';
+      container.style.width = `${columnWidth}px`; // We measure in a column-width box, but we add header height on top
+      container.style.display = 'flex';
+      container.style.flexDirection = 'column';
 
-    // Take the more limiting factor
-    let baseContentScale = Math.min(widthScale, heightScale);
+      // 1. Simulate Main Header Height
+      const headerPadding = LAYOUT_CONSTANTS.HEADER.PADDING_PX * 2 * scale; // p-4 scaled (top+bottom)
+      const titleFontSize = settings.mainTitleSize * LAYOUT_CONSTANTS.HEADER.TITLE_SCALE_FACTOR * scale;
+      const headerHeight = titleFontSize * 1.5 + headerPadding;
 
-    // Apply upper bound: content shouldn't exceed title size
-    // This prevents event text from being larger than the main title
-    // Using a more generous bound (1.2x header) to allow larger text with few events
-    const upperBound = finalHeaderScale * 1.2;
-    baseContentScale = Math.min(baseContentScale, upperBound);
+      // 2. Column Header
+      const colHeaderPadding = LAYOUT_CONSTANTS.COLUMN.HEADER_PADDING_Y_PX * 2 * scale; // py-3 (12px) * 2 = 24px
+      const colTitleFontSize = settings.columnTitleSize * LAYOUT_CONSTANTS.COLUMN.TITLE_SCALE_FACTOR * scale;
+      const colHeaderHeight = colTitleFontSize * 1.5 + colHeaderPadding;
 
-    // Apply user zoom
-    const finalContentScale = baseContentScale * zoomLevel;
+      // 3. Events
+      const list = document.createElement('div');
+      list.style.display = 'flex';
+      list.style.flexDirection = 'column';
 
-    // Enforce minimum scale
-    const minScale = 0.1;
-    setHeaderScale(Math.max(finalHeaderScale, minScale));
-    setContentScale(Math.max(finalContentScale, minScale));
-  }, [containerWidth, containerHeight, headerHeight, columns, events, zoomLevel]);
+      targetEvents.forEach(event => {
+        const row = document.createElement('div');
+        const py = LAYOUT_CONSTANTS.EVENT.PADDING_Y_PX * scale;
+        const px = LAYOUT_CONSTANTS.EVENT.PADDING_X_PX * scale;
+        row.style.padding = `${py}px ${px}px`;
+        row.style.borderBottom = '1px solid #eee';
+        row.style.display = 'flex';
+        row.style.justifyContent = 'space-between';
+        row.style.alignItems = 'center';
 
-  // Debounced effect to recalculate scales
-  useEffect(() => {
-    // Clear existing timeout
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
+        const fontSize = settings.eventTextScale * LAYOUT_CONSTANTS.EVENT.TEXT_SCALE_FACTOR * scale;
+        row.style.fontSize = `${fontSize}px`;
+        row.style.lineHeight = '1.5';
+
+        const name = document.createElement('span');
+        name.innerText = event.name;
+        name.style.flex = '1';
+
+        const time = document.createElement('span');
+        time.innerText = '00:00';
+        time.style.fontWeight = 'bold';
+
+        row.appendChild(name);
+        row.appendChild(time);
+        list.appendChild(row);
+      });
+
+      container.appendChild(list);
+
+      // Total Height = Header + Top Padding + ColumnHeader + EventsList + Bottom Padding
+      const paddingY = LAYOUT_CONSTANTS.GRID.PADDING_PX * scale;
+
+      return headerHeight + paddingY + colHeaderHeight + container.scrollHeight + paddingY;
+    };
+
+    // Binary Search
+    let min = 0.1;
+    let max = 5.0;
+    let optimal = min;
+
+    for (let i = 0; i < 64; i++) {
+      const mid = (min + max) / 2;
+      const height = measureHeightAtScale(mid);
+      if (height > availableHeight) {
+        max = mid;
+      } else {
+        optimal = mid;
+        min = mid;
+      }
     }
 
-    // Set new timeout
-    timeoutRef.current = setTimeout(() => {
-      calculateScales();
-    }, DEBOUNCE_MS);
+    setContentScale(optimal);
+  }, [containerWidth, containerHeight, columns, events, settings]);
 
-    // Cleanup
-    return () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
-    };
+  useEffect(() => {
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    timeoutRef.current = setTimeout(calculateScales, DEBOUNCE_MS);
+    return () => { if (timeoutRef.current) clearTimeout(timeoutRef.current); };
   }, [calculateScales]);
 
-  // Also calculate immediately on mount
-  useEffect(() => {
-    calculateScales();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
-  return { headerScale, contentScale };
+  return { contentScale };
 };

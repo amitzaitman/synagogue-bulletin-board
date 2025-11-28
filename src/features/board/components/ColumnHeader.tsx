@@ -1,5 +1,6 @@
 import React from 'react';
 import { Column, BoardSettings } from '../../../shared/types/types';
+import { LAYOUT_CONSTANTS } from '../../../shared/constants/layout';
 
 // --- Helper Icons ---
 const PencilIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.5L14.732 3.732z" /></svg>;
@@ -34,7 +35,7 @@ const ColumnHeader: React.FC<ColumnHeaderProps> = ({
     onColumnDragStart,
     onColumnDragEnd
 }) => {
-    const titleFontSize = `${2.8 * (settings.columnTitleSize / 100)}em`;
+    const titleFontSize = `${LAYOUT_CONSTANTS.COLUMN.HEADER_TITLE_BASE_EM * (settings.columnTitleSize / 100)}em`;
 
     const handleTitleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key === 'Enter') {

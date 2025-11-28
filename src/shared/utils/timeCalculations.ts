@@ -33,7 +33,7 @@ export const roundTime = (date: Date, rounding: { direction: 'up' | 'down' | 'ne
 };
 
 export const formatTime = (date: Date): string => {
-    const hours = String(date.getHours()).padStart(2, '0');
+    const hours = String(date.getHours());
     const minutes = String(date.getMinutes()).padStart(2, '0');
     return `${hours}:${minutes}`;
 };

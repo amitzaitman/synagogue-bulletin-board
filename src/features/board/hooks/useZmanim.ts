@@ -13,10 +13,12 @@ export const useZmanim = (settings: BoardSettings) => {
 
     useEffect(() => {
         const fetchZmanim = (lat: number, lon: number) => {
+            console.info(`[useZmanim] Calculating zmanim for location: ${lat}, ${lon}`);
             setLoading(true);
             try {
                 const isIsrael = lat > 29.45 && lat < 33.34 && lon > 34.20 && lon < 35.90;
                 const timezone = isIsrael ? 'Asia/Jerusalem' : Intl.DateTimeFormat().resolvedOptions().timeZone;
+                console.info(`[useZmanim] Using timezone: ${timezone} (isIsrael: ${isIsrael})`);
 
                 const location = new Location(lat, lon, isIsrael, timezone);
                 if (elevation) {
@@ -141,11 +143,12 @@ export const useZmanim = (settings: BoardSettings) => {
                     throw new Error("Could not calculate sunrise/sunset from Hebcal library");
                 }
 
+                console.info('[useZmanim] Successfully calculated zmanim data');
                 setZmanimData(newZmanimData);
                 setError(null);
 
             } catch (e: any) {
-                console.error("Error calculating Zmanim with @hebcal/core:", e);
+                console.error("[useZmanim] Error calculating Zmanim with @hebcal/core:", e);
                 setError('לא ניתן היה לחשב את זמני היום');
             } finally {
                 setLoading(false);
@@ -155,8 +158,13 @@ export const useZmanim = (settings: BoardSettings) => {
         if (latitude && longitude) {
             fetchZmanim(latitude, longitude);
             // Refresh every 10 minutes to keep zmanim up to date, and on day change
-            const intervalId = setInterval(() => fetchZmanim(latitude, longitude), 10 * 60 * 1000);
+            const intervalId = setInterval(() => {
+                console.info('[useZmanim] Refreshing zmanim data (interval)');
+                fetchZmanim(latitude, longitude);
+            }, 10 * 60 * 1000);
             return () => clearInterval(intervalId);
+        } else {
+            console.warn('[useZmanim] Missing latitude/longitude, skipping calculation');
         }
 
     }, [elevation, latitude, longitude, shabbatCandleOffset]);
