@@ -78,22 +78,69 @@ export const useResponsiveScaling = ({
       if (!measureRef.current) return Infinity;
       const container = measureRef.current;
       container.innerHTML = '';
-      // 1. Measure Main Header Height (using full container width)
-      container.innerHTML = '';
-      container.style.width = `${containerWidth}px`;
-      container.style.padding = `${LAYOUT_CONSTANTS.HEADER.PADDING_PX * scale}px`;
-      container.style.display = 'flex';
-      container.style.justifyContent = 'center';
 
+      // 1. Measure Main Header Height (using full container width)
+      container.style.width = `${containerWidth}px`;
+      container.style.boxSizing = 'border-box';
+
+      const titleFontSize = settings.mainTitleSize * LAYOUT_CONSTANTS.HEADER.TITLE_SCALE_FACTOR * scale;
+      const headerPadding = titleFontSize * LAYOUT_CONSTANTS.HEADER.PADDING_EM;
+      container.style.padding = `${headerPadding}px`;
+      container.style.display = 'flex';
+      container.style.flexDirection = 'row'; // Explicitly set row
+      container.style.justifyContent = 'space-between';
+      container.style.alignItems = 'center';
+
+      // Clock Section (Left)
+      const clockDiv = document.createElement('div');
+      clockDiv.style.boxSizing = 'border-box';
+      clockDiv.style.display = 'flex';
+      clockDiv.style.flexDirection = 'column';
+      clockDiv.style.alignItems = 'flex-start';
+      clockDiv.style.width = '25%';
+
+      const clockInner = document.createElement('div');
+      clockInner.style.boxSizing = 'border-box';
+      clockInner.style.fontSize = `${LAYOUT_CONSTANTS.HEADER.CLOCK_FONT_SIZE_REM * scale}rem`;
+      clockInner.style.padding = `${LAYOUT_CONSTANTS.HEADER.CLOCK_PADDING_Y_EM}em ${LAYOUT_CONSTANTS.HEADER.CLOCK_PADDING_X_EM}em`;
+      clockInner.innerText = '00:00:00';
+      clockDiv.appendChild(clockInner);
+      container.appendChild(clockDiv);
+
+      // Title Section (Center)
       const titleDiv = document.createElement('div');
-      titleDiv.style.width = '50%'; // Title takes 50% width
+      titleDiv.style.boxSizing = 'border-box';
+      titleDiv.style.width = '50%';
       titleDiv.style.textAlign = 'center';
-      titleDiv.style.fontSize = `${settings.mainTitleSize * LAYOUT_CONSTANTS.HEADER.TITLE_SCALE_FACTOR * scale}px`;
+      titleDiv.style.fontSize = `${titleFontSize}px`;
       titleDiv.style.fontWeight = 'bold';
       titleDiv.style.lineHeight = '1.5';
       titleDiv.innerText = settings.boardTitle || '';
-
       container.appendChild(titleDiv);
+
+      // Date Section (Right)
+      const dateDiv = document.createElement('div');
+      dateDiv.style.boxSizing = 'border-box';
+      dateDiv.style.display = 'flex';
+      dateDiv.style.flexDirection = 'column';
+      dateDiv.style.alignItems = 'flex-end';
+      dateDiv.style.width = '25%';
+
+      const dateInner = document.createElement('div');
+      dateInner.style.boxSizing = 'border-box';
+      dateInner.style.fontSize = `${LAYOUT_CONSTANTS.HEADER.DATE_FONT_SIZE_REM * scale}rem`;
+      dateInner.style.fontWeight = 'bold';
+      dateInner.innerText = 'Date';
+      dateDiv.appendChild(dateInner);
+
+      const parshaInner = document.createElement('div');
+      parshaInner.style.boxSizing = 'border-box';
+      parshaInner.style.fontSize = `${LAYOUT_CONSTANTS.HEADER.PARSHA_FONT_SIZE_REM * scale}rem`;
+      parshaInner.innerText = 'Parsha';
+      dateDiv.appendChild(parshaInner);
+
+      container.appendChild(dateDiv);
+
       const headerHeight = container.scrollHeight;
 
       // Reset for column measurement
@@ -102,6 +149,7 @@ export const useResponsiveScaling = ({
       container.style.padding = '0';
       container.style.display = 'flex';
       container.style.flexDirection = 'column';
+      container.style.boxSizing = 'border-box';
 
       // 2. Column Header
       const colHeaderPadding = LAYOUT_CONSTANTS.COLUMN.HEADER_PADDING_Y_PX * 2 * scale; // py-3 (12px) * 2 = 24px
@@ -112,9 +160,11 @@ export const useResponsiveScaling = ({
       const list = document.createElement('div');
       list.style.display = 'flex';
       list.style.flexDirection = 'column';
+      list.style.boxSizing = 'border-box';
 
       targetEvents.forEach(event => {
         const row = document.createElement('div');
+        row.style.boxSizing = 'border-box';
         const py = LAYOUT_CONSTANTS.EVENT.PADDING_Y_PX * scale;
         const px = LAYOUT_CONSTANTS.EVENT.PADDING_X_PX * scale;
         row.style.padding = `${py}px ${px}px`;
@@ -139,13 +189,14 @@ export const useResponsiveScaling = ({
         row.appendChild(time);
         list.appendChild(row);
       });
-
       container.appendChild(list);
 
       // Total Height = Header + Top Padding + ColumnHeader + EventsList + Bottom Padding
       const paddingY = LAYOUT_CONSTANTS.GRID.PADDING_PX * scale;
+      const totalHeight = headerHeight + paddingY + colHeaderHeight + container.scrollHeight + paddingY;
 
-      return headerHeight + paddingY + colHeaderHeight + container.scrollHeight + paddingY;
+      console.log(`Scale: ${scale}, Header: ${headerHeight}, ColHeader: ${colHeaderHeight}, Events: ${container.scrollHeight}, Total: ${totalHeight}, Available: ${availableHeight}`);
+      return totalHeight;
     };
 
     // Binary Search

@@ -20,7 +20,8 @@ const Header: React.FC<HeaderProps> = ({ settings, zmanimData, scale = 1 }) => {
         return date.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
     };
 
-    const padding = LAYOUT_CONSTANTS.HEADER.PADDING_PX * scale; // p-4 = 16px
+    const titleFontSize = settings.mainTitleSize * LAYOUT_CONSTANTS.HEADER.TITLE_SCALE_FACTOR * scale;
+    const padding = titleFontSize * LAYOUT_CONSTANTS.HEADER.PADDING_EM;
 
     return (
         <header
@@ -33,7 +34,7 @@ const Header: React.FC<HeaderProps> = ({ settings, zmanimData, scale = 1 }) => {
                     className="font-bold font-mono tracking-wider bg-white/10 rounded-lg"
                     style={{
                         fontSize: `${LAYOUT_CONSTANTS.HEADER.CLOCK_FONT_SIZE_REM * scale}rem`, // text-4xl = 2.25rem
-                        padding: `${LAYOUT_CONSTANTS.HEADER.CLOCK_PADDING_Y_PX * scale}px ${LAYOUT_CONSTANTS.HEADER.CLOCK_PADDING_X_PX * scale}px` // px-4 py-2
+                        padding: `${LAYOUT_CONSTANTS.HEADER.CLOCK_PADDING_Y_EM}em ${LAYOUT_CONSTANTS.HEADER.CLOCK_PADDING_X_EM}em`
                     }}
                 >
                     {formatTime(time)}

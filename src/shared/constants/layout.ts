@@ -55,10 +55,10 @@ export const LAYOUT_CONSTANTS = {
         PADDING_X_PX: 16,
     },
     HEADER: {
-        PADDING_PX: 16,
+        PADDING_EM: 0.35,
         CLOCK_FONT_SIZE_REM: 2.25,
-        CLOCK_PADDING_Y_PX: 8,
-        CLOCK_PADDING_X_PX: 16,
+        CLOCK_PADDING_Y_EM: 0.25,
+        CLOCK_PADDING_X_EM: 0.5,
         TITLE_SCALE_FACTOR: 0.5,
         DATE_FONT_SIZE_REM: 1.5,
         PARSHA_FONT_SIZE_REM: 1.25,

@@ -42,7 +42,16 @@ const Column: React.FC<ColumnProps> = ({ column, events, settings, calculatedTim
             </div>
 
             {/* Events List */}
-            <div className="flex-1 overflow-y-auto">
+            <div className="flex-1 overflow-y-auto scrollbar-hide">
+                <style>{`
+                    .scrollbar-hide::-webkit-scrollbar {
+                        display: none;
+                    }
+                    .scrollbar-hide {
+                        -ms-overflow-style: none;
+                        scrollbar-width: none;
+                    }
+                `}</style>
                 <SortableContext items={events.map(e => e.id)} strategy={verticalListSortingStrategy}>
                     {events.length > 0 ? (
                         events.map((event, index) => (
