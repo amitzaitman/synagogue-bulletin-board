@@ -133,7 +133,7 @@ export const useResponsiveScaling = ({
     };
 
     // Binary Search
-    let min = 0.1;
+    let min = 0.01;
     let max = 5.0;
     let optimal = min;
 
