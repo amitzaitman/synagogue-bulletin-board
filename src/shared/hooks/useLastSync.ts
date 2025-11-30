@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { onOnlineStatusChange } from '../utils/offlineStorage';
+import { useNetworkState } from 'react-use';
 
 const LAST_SYNC_KEY = 'lastSuccessfulSync';
 
@@ -11,27 +11,22 @@ export const useLastSync = () => {
     const stored = localStorage.getItem(LAST_SYNC_KEY);
     return stored ? new Date(stored) : new Date();
   });
-  const [isOnline, setIsOnline] = useState(navigator.onLine);
 
-  // Listen to online status changes
+  const networkState = useNetworkState();
+  const isOnline = networkState.online ?? true;
+
+  // Update sync time when coming back online
   useEffect(() => {
-    const unsubscribe = onOnlineStatusChange((online) => {
-      setIsOnline(online);
-
-      // When we come back online, update the last sync time
-      if (online) {
-        const now = new Date();
-        setLastSyncTime(now);
-        localStorage.setItem(LAST_SYNC_KEY, now.toISOString());
-      }
-    });
-
-    return unsubscribe;
-  }, []);
+    if (isOnline) {
+      const now = new Date();
+      setLastSyncTime(now);
+      localStorage.setItem(LAST_SYNC_KEY, now.toISOString());
+    }
+  }, [isOnline]);
 
   // Update sync time when data changes (called manually)
   const updateSyncTime = () => {
-    if (navigator.onLine) {
+    if (isOnline) {
       const now = new Date();
       setLastSyncTime(now);
       localStorage.setItem(LAST_SYNC_KEY, now.toISOString());

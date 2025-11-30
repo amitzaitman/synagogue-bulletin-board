@@ -124,17 +124,17 @@ interface EditPanelProps {
 
 const themes = {
   light: {
-    prayerColor: '#78350f',
-    classColor: '#115e59',
-    freeTextColor: '#44403c',
-    columnTitleColor: '#78350f',
-    mainTitleColor: '#92400e',
+    prayerColor: '#1e3a5f', // brand-dark
+    classColor: '#2c5282', // brand-accent
+    freeTextColor: '#4a5568', // gray-700
+    columnTitleColor: '#ffffff',
+    mainTitleColor: '#ffffff',
     highlightColor: '#fef3c7',
-    mainBackgroundColor: '#E6DFD4',
-    boardBackgroundColor: 'rgba(248, 244, 237, 0.85)',
-    columnBackgroundColor: 'rgba(251, 247, 241, 0.75)',
-    clockBackgroundColor: 'rgba(244, 238, 228, 0.6)',
-    zmanimBackgroundColor: 'rgba(244, 238, 228, 0.6)',
+    mainBackgroundColor: '#f0f2f5', // brand-bg
+    boardBackgroundColor: 'rgba(240, 242, 245, 0)', // transparent
+    columnBackgroundColor: '#ffffff',
+    clockBackgroundColor: 'rgba(255, 255, 255, 0.1)',
+    zmanimBackgroundColor: '#1e3a5f', // brand-dark
   },
   dark: {
     prayerColor: '#fde68a', // amber-200
@@ -193,16 +193,7 @@ const EditPanel: React.FC<EditPanelProps> = React.forwardRef<{
   }));
 
   const handleSettingChange = (field: keyof BoardSettings, value: any) => {
-    if (field === 'manualEventOrdering') {
-      const isEnablingManual = value === true;
-      const message = isEnablingManual
-        ? 'האם אתה בטוח שברצונך לעבור למיון ידני?\n\nבמצב ידני, אירועים לא יסודרו אוטומטית לפי שעה. תוכל לגרור ולשנות את סדר האירועים באופן חופשי.'
-        : 'האם אתה בטוח שברצונך לעבור למיון אוטומטי?\n\nבמצב אוטומטי, האירועים יסודרו אוטומטית לפי השעה שלהם בכל פעם שתערוך אירוע.';
 
-      if (!window.confirm(message)) {
-        return;
-      }
-    }
 
     let newSettings = { ...settings, [field]: value };
 
@@ -220,7 +211,7 @@ const EditPanel: React.FC<EditPanelProps> = React.forwardRef<{
 
   const tabs = [
     { id: 'general', label: 'כללי', icon: <SettingsIcon /> },
-    { id: 'fonts', label: 'גופנים', icon: <FontIcon /> },
+    { id: 'fonts', label: 'גופנים וריווח', icon: <FontIcon /> },
     { id: 'colors', label: 'צבעי טקסט', icon: <ColorIcon /> },
     { id: 'background', label: 'רקעים', icon: <BackgroundIcon /> },
     { id: 'location', label: 'מיקום וזמנים', icon: <LocationIcon /> },
@@ -267,28 +258,13 @@ const EditPanel: React.FC<EditPanelProps> = React.forwardRef<{
                 onChange={(e) => handleSettingChange('theme', e.target.value)}
                 className={inputClass}
               >
-                <option value="light">בהיר</option>
+                <option value="light">רגיל (כחול)</option>
                 <option value="dark">כהה</option>
                 <option value="brightBlue">כחול בהיר</option>
                 <option value="custom" disabled>מותאם אישית</option>
               </select>
             </div>
-            <div className="bg-white p-4 rounded-lg border border-stone-200">
-              <label className="flex items-center justify-between cursor-pointer">
-                <span className="font-medium text-stone-700">מיון ידני של אירועים</span>
-                <input
-                  type="checkbox"
-                  checked={settings.manualEventOrdering || false}
-                  onChange={(e) => handleSettingChange('manualEventOrdering', e.target.checked)}
-                  className="w-5 h-5 text-amber-600 rounded focus:ring-amber-500"
-                />
-              </label>
-              <div className="mt-2 text-xs text-stone-500">
-                {settings.manualEventOrdering
-                  ? '✓ מצב ידני: גרור אירועים כדי לשנות את הסדר'
-                  : '○ מצב אוטומטי: אירועים מסודרים לפי שעה'}
-              </div>
-            </div>
+
           </div>
         )}
 
@@ -304,6 +280,36 @@ const EditPanel: React.FC<EditPanelProps> = React.forwardRef<{
             <div>
               <label className={labelClass}>גודל כותרת עמודה: {settings.columnTitleSize}%</label>
               <input type="range" min="50" max="200" step="5" value={settings.columnTitleSize} onChange={(e) => handleSettingChange('columnTitleSize', parseInt(e.target.value))} className="w-full" />
+            </div>
+
+            <div className="pt-4 border-t border-gray-200">
+              <h3 className="font-semibold text-stone-900 mb-4">ריווח אירועים</h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className={labelClass}>מרווח אנכי (מעל/מתחת): {settings.eventPaddingY ?? 6}px</label>
+                  <input
+                    type="range"
+                    min="0"
+                    max="20"
+                    step="1"
+                    value={settings.eventPaddingY ?? 6}
+                    onChange={(e) => handleSettingChange('eventPaddingY', parseInt(e.target.value))}
+                    className="w-full"
+                  />
+                </div>
+                <div>
+                  <label className={labelClass}>מרווח אופקי (צדדים): {settings.eventPaddingX ?? 12}px</label>
+                  <input
+                    type="range"
+                    min="0"
+                    max="30"
+                    step="1"
+                    value={settings.eventPaddingX ?? 12}
+                    onChange={(e) => handleSettingChange('eventPaddingX', parseInt(e.target.value))}
+                    className="w-full"
+                  />
+                </div>
+              </div>
             </div>
           </div>
         )}
@@ -335,9 +341,16 @@ const EditPanel: React.FC<EditPanelProps> = React.forwardRef<{
                 <label className={labelClass}>צבע כותרת ראשית</label>
                 <input type="color" value={settings.mainTitleColor} onChange={(e) => handleSettingChange('mainTitleColor', e.target.value)} className="w-full h-10 rounded cursor-pointer" />
               </div>
-              <div>
-                <label className={labelClass}>צבע הדגשה</label>
-                <input type="color" value={settings.highlightColor} onChange={(e) => handleSettingChange('highlightColor', e.target.value)} className="w-full h-10 rounded cursor-pointer" />
+              <label className={labelClass}>צבע הדגשה</label>
+              <div className="flex gap-2">
+                <input type="color" value={settings.highlightColor || '#ffffff'} onChange={(e) => handleSettingChange('highlightColor', e.target.value)} className="w-full h-10 rounded cursor-pointer" />
+                <button
+                  onClick={() => handleSettingChange('highlightColor', '')}
+                  className="px-3 py-2 text-sm text-red-600 bg-red-50 hover:bg-red-100 rounded border border-red-200"
+                  title="ללא צבע הדגשה"
+                >
+                  ללא
+                </button>
               </div>
             </div>
           </div>
@@ -345,13 +358,7 @@ const EditPanel: React.FC<EditPanelProps> = React.forwardRef<{
 
         {activeTab === 'background' && (
           <div className="space-y-6 max-w-2xl mx-auto animate-fade-in">
-            <div>
-              <label className={labelClass}>רקע כללי (מסך)</label>
-              <div className="flex gap-4 items-center">
-                <input type="color" value={settings.mainBackgroundColor} onChange={(e) => handleSettingChange('mainBackgroundColor', e.target.value)} className="w-16 h-16 rounded-lg cursor-pointer shadow-sm" />
-                <span className="text-sm text-stone-500">צבע הרקע שמאחורי הלוח</span>
-              </div>
-            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <ColorOpacityControl
                 label="רקע הלוח"

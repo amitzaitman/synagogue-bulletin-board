@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Location, Zmanim, HebrewCalendar, HDate, flags, Event } from '@hebcal/core';
+import { Zmanim, HebrewCalendar, HDate, flags, Event } from '@hebcal/core';
 import { BoardSettings, ZmanimData } from '../../../shared/types/types';
+import { createHebcalLocation } from '../../../shared/utils/hebcal';
 
 // Helper function to remove Hebrew vowel points and cantillation marks
 const removeNikud = (text: string): string => text.replace(/[\u0591-\u05BD\u05BF-\u05C7]/g, '');
@@ -16,14 +17,7 @@ export const useZmanim = (settings: BoardSettings) => {
             console.info(`[useZmanim] Calculating zmanim for location: ${lat}, ${lon}`);
             setLoading(true);
             try {
-                const isIsrael = lat > 29.45 && lat < 33.34 && lon > 34.20 && lon < 35.90;
-                const timezone = isIsrael ? 'Asia/Jerusalem' : Intl.DateTimeFormat().resolvedOptions().timeZone;
-                console.info(`[useZmanim] Using timezone: ${timezone} (isIsrael: ${isIsrael})`);
-
-                const location = new Location(lat, lon, isIsrael, timezone);
-                if (elevation) {
-                    location.setElevation(elevation);
-                }
+                const location = createHebcalLocation(lat, lon, elevation);
 
                 const now = new Date();
                 const today = now.getDay(); // Sunday=0, ..., Saturday=6
@@ -44,6 +38,10 @@ export const useZmanim = (settings: BoardSettings) => {
                 // Get all zmanim for Shabbat day
                 const zmanimShabbat = new Zmanim(location, saturday, true);
 
+                // Get zmanim for TODAY (for the footer display)
+                const zmanimToday = new Zmanim(location, now, true);
+
+                const isIsrael = location.getIsrael();
                 const calendarOptions = { location, il: isIsrael, sedrot: true };
 
                 // Get candle lighting time directly from Zmanim object for Friday
@@ -60,6 +58,9 @@ export const useZmanim = (settings: BoardSettings) => {
 
                 // Get Hebrew date for Shabbat
                 const shabbatHebrewDate = new HDate(saturday);
+
+                // Get Hebrew date for today (current)
+                const currentHebrewDate = new HDate(now);
 
                 // Get special events for Shabbat (holidays, fasts, etc.)
                 const allShabbatEvents = [...fridayEvents, ...saturdayEvents];
@@ -118,32 +119,33 @@ export const useZmanim = (settings: BoardSettings) => {
                     hebrewDate: removeNikud(shabbatHebrewDate.renderGematriya(true)),
                     parsha: parshaEvent ? removeNikud(parshaEvent.render('he')) : null,
                     holidayEvents: uniqueSpecialEvents,
-                    // Shabbat day (Saturday) zmanim
-                    sunrise: zmanimShabbat.sunrise() || null,
-                    sunset: zmanimShabbat.sunset() || null,
+                    // Current day zmanim (from zmanimToday)
+                    sunrise: zmanimToday.sunrise() || null,
+                    sunset: zmanimToday.sunset() || null,
                     // Friday zmanim
                     fridaySunrise: zmanimFriday.sunrise() || null,
                     fridaySunset: zmanimFriday.sunset() || null,
                     shabbatCandles: shabbatCandles,
                     shabbatEnd: shabbatEnd,
-                    sofZmanShmaMGA: zmanimShabbat.sofZmanShmaMGA() || null,
-                    sofZmanShmaGRA: zmanimShabbat.sofZmanShma() || null,
-                    sofZmanTfillaMGA: zmanimShabbat.sofZmanTfillaMGA() || null,
-                    sofZmanTfillaGRA: zmanimShabbat.sofZmanTfilla() || null,
-                    alotHaShachar: zmanimShabbat.alotHaShachar() || null,
-                    chatzot: zmanimShabbat.chatzot() || null,
-                    minchaGedola: zmanimShabbat.minchaGedola() || null,
-                    minchaKetana: zmanimShabbat.minchaKetana() || null,
-                    plagHaMincha: zmanimShabbat.plagHaMincha() || null,
-                    tzeit: zmanimShabbat.tzeit() || null,
+                    sofZmanShmaMGA: zmanimToday.sofZmanShmaMGA() || null,
+                    sofZmanShmaGRA: zmanimToday.sofZmanShma() || null,
+                    sofZmanTfillaMGA: zmanimToday.sofZmanTfillaMGA() || null,
+                    sofZmanTfillaGRA: zmanimToday.sofZmanTfilla() || null,
+                    alotHaShachar: zmanimToday.alotHaShachar() || null,
+                    chatzot: zmanimToday.chatzot() || null,
+                    minchaGedola: zmanimToday.minchaGedola() || null,
+                    minchaKetana: zmanimToday.minchaKetana() || null,
+                    plagHaMincha: zmanimToday.plagHaMincha() || null,
+                    tzeit: zmanimToday.dusk() || null,
                     weekdaysEarliestSunset: weekdaysEarliestSunset,
+                    currentHebrewDate: removeNikud(currentHebrewDate.renderGematriya(true)),
                 };
 
                 if (!newZmanimData.sunrise || !newZmanimData.sunset) {
                     throw new Error("Could not calculate sunrise/sunset from Hebcal library");
                 }
 
-                console.info('[useZmanim] Successfully calculated zmanim data');
+                console.info('[useZmanim] Successfully calculated zmanim data', newZmanimData);
                 setZmanimData(newZmanimData);
                 setError(null);
 

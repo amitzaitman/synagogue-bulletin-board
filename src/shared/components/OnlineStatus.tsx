@@ -1,32 +1,27 @@
 import React, { useState, useEffect } from 'react';
-import { onOnlineStatusChange } from '../utils/offlineStorage';
+import { useNetworkState } from 'react-use';
 
 /**
  * Component that shows online/offline status
  * Only appears when offline or during transitions
  */
 const OnlineStatus: React.FC = () => {
-  const [isOnline, setIsOnline] = useState(navigator.onLine);
-  const [showStatus, setShowStatus] = useState(!navigator.onLine);
+  const networkState = useNetworkState();
+  const isOnline = networkState.online ?? true;
+  const [showStatus, setShowStatus] = useState(false);
 
   useEffect(() => {
-    // Listen to online/offline changes
-    const unsubscribe = onOnlineStatusChange((online) => {
-      setIsOnline(online);
+    // Show status when state changes
+    setShowStatus(true);
 
-      // Show status indicator
-      setShowStatus(true);
-
-      // Auto-hide after 3 seconds if online
-      if (online) {
-        setTimeout(() => {
-          setShowStatus(false);
-        }, 3000);
-      }
-    });
-
-    return unsubscribe;
-  }, []);
+    // Auto-hide after 3 seconds if online
+    if (isOnline) {
+      const timer = setTimeout(() => {
+        setShowStatus(false);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [isOnline]);
 
   // Don't show anything if offline or if online and we've hidden it
   if (!isOnline || (isOnline && !showStatus)) {

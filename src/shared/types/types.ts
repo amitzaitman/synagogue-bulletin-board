@@ -46,7 +46,7 @@ export type TimeDefinition = AbsoluteTime | RelativeToEventTime | RelativeToZman
 // --- Main Interfaces ---
 
 export interface EventItem {
-  id:string;
+  id: string;
   name: string;
   type: EventType;
   columnId: string;
@@ -57,36 +57,37 @@ export interface EventItem {
 }
 
 export interface ZmanimData {
-    hebrewDate: string | null;
-    parsha: string | null;
-    holidayEvents: string[];
-    // Shabbat day (Saturday) zmanim
-    sunrise: Date | null;
-    sunset: Date | null;
-    // Friday zmanim (for candle lighting)
-    fridaySunrise: Date | null;
-    fridaySunset: Date | null;
-    shabbatCandles: Date | null;
-    shabbatEnd: Date | null;
-    sofZmanShmaMGA: Date | null;
-    sofZmanShmaGRA: Date | null;
-    sofZmanTfillaMGA: Date | null;
-    sofZmanTfillaGRA: Date | null;
-    alotHaShachar: Date | null;
-    chatzot: Date | null;
-    minchaGedola: Date | null;
-    minchaKetana: Date | null;
-    plagHaMincha: Date | null;
-    tzeit: Date | null;
-    // For weekdays (Sun-Thu or next week if we're on Fri/Sat)
-    weekdaysEarliestSunset: Date | null; // The earliest sunset in the weekday range
+  hebrewDate: string | null;
+  parsha: string | null;
+  holidayEvents: string[];
+  // Current day zmanim
+  sunrise: Date | null;
+  sunset: Date | null;
+  // Friday zmanim (for candle lighting)
+  fridaySunrise: Date | null;
+  fridaySunset: Date | null;
+  shabbatCandles: Date | null;
+  shabbatEnd: Date | null;
+  sofZmanShmaMGA: Date | null;
+  sofZmanShmaGRA: Date | null;
+  sofZmanTfillaMGA: Date | null;
+  sofZmanTfillaGRA: Date | null;
+  alotHaShachar: Date | null;
+  chatzot: Date | null;
+  minchaGedola: Date | null;
+  minchaKetana: Date | null;
+  plagHaMincha: Date | null;
+  tzeit: Date | null;
+  // For weekdays (Sun-Thu or next week if we're on Fri/Sat)
+  weekdaysEarliestSunset: Date | null; // The earliest sunset in the weekday range
+  currentHebrewDate: string | null; // The Hebrew date for right now (today)
 }
 
 // Helper type for calculating zmanim for a specific date
 export interface DateSpecificZmanim {
-    date: Date;
-    sunrise: Date | null;
-    sunset: Date | null;
+  date: Date;
+  sunrise: Date | null;
+  sunset: Date | null;
 }
 
 export interface BoardSettings {
@@ -98,6 +99,8 @@ export interface BoardSettings {
   mainTitleSize: number; // as a percentage of base size
   columnTitleSize: number; // as a percentage of base size
   eventTextScale: number; // as a percentage of base size
+  eventPaddingY?: number; // Vertical padding for event items (px)
+  eventPaddingX?: number; // Horizontal padding for event items (px)
   theme: 'light' | 'dark' | 'brightBlue' | 'custom';
   // Colors for text elements
   prayerColor: string;

@@ -1,14 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { BoardSettings, ZmanimData } from '../../../shared/types/types';
-import { LAYOUT_CONSTANTS } from '../../../shared/constants/layout';
 
 interface HeaderProps {
     settings: BoardSettings;
     zmanimData: ZmanimData | null;
-    scale?: number;
 }
 
-const Header: React.FC<HeaderProps> = ({ settings, zmanimData, scale = 1 }) => {
+const Header: React.FC<HeaderProps> = ({ settings, zmanimData }) => {
     const [time, setTime] = useState(new Date());
 
     useEffect(() => {
@@ -20,21 +18,20 @@ const Header: React.FC<HeaderProps> = ({ settings, zmanimData, scale = 1 }) => {
         return date.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
     };
 
-    const titleFontSize = settings.mainTitleSize * LAYOUT_CONSTANTS.HEADER.TITLE_SCALE_FACTOR * scale;
-    const padding = titleFontSize * LAYOUT_CONSTANTS.HEADER.PADDING_EM;
-
     return (
         <header
             className="bg-brand-dark text-white shadow-md flex justify-between items-center"
-            style={{ padding: `${padding}px` }}
+            style={{ padding: '1.5vw' }}
         >
             {/* Clock Section (Left in RTL) */}
-            <div className="flex flex-col items-start w-1/4">
+            <div className="flex flex-col items-start w-1/6">
                 <div
-                    className="font-bold font-mono tracking-wider bg-white/10 rounded-lg"
+                    className="font-mono tracking-wider bg-white/10 rounded-lg"
                     style={{
-                        fontSize: `${LAYOUT_CONSTANTS.HEADER.CLOCK_FONT_SIZE_REM * scale}rem`, // text-4xl = 2.25rem
-                        padding: `${LAYOUT_CONSTANTS.HEADER.CLOCK_PADDING_Y_EM}em ${LAYOUT_CONSTANTS.HEADER.CLOCK_PADDING_X_EM}em`
+                        fontSize: '2.5vw',
+                        padding: '0.25em 0.5em',
+                        backgroundColor: settings.clockBackgroundColor,
+                        color: settings.mainTitleColor
                     }}
                 >
                     {formatTime(time)}
@@ -42,22 +39,22 @@ const Header: React.FC<HeaderProps> = ({ settings, zmanimData, scale = 1 }) => {
             </div>
 
             {/* Title Section (Center) */}
-            <div className="w-1/2 text-center">
+            <div className="w-2/3 text-center">
                 <h1
-                    className="font-title font-bold drop-shadow-lg"
-                    style={{ fontSize: `${settings.mainTitleSize * LAYOUT_CONSTANTS.HEADER.TITLE_SCALE_FACTOR * scale}px` }}
+                    className="font-bold drop-shadow-lg"
+                    style={{ fontSize: '5vw', color: settings.mainTitleColor }}
                 >
                     {settings.boardTitle}
                 </h1>
             </div>
 
             {/* Date Section (Right in RTL) */}
-            <div className="flex flex-col items-end w-1/4 text-right">
+            <div className="flex flex-col items-end w-1/6 text-right">
                 {zmanimData && (
                     <>
-                        <div style={{ fontSize: `${LAYOUT_CONSTANTS.HEADER.DATE_FONT_SIZE_REM * scale}rem`, fontWeight: 'bold' }}>{zmanimData.hebrewDate}</div>
+                        <div style={{ fontSize: '2vw', fontWeight: 'bold' }}>{zmanimData.currentHebrewDate}</div>
                         {zmanimData.parsha && (
-                            <div style={{ fontSize: `${LAYOUT_CONSTANTS.HEADER.PARSHA_FONT_SIZE_REM * scale}rem`, opacity: 0.9 }}>{zmanimData.parsha}</div>
+                            <div style={{ fontSize: '1.5vw', opacity: 0.9 }}>{zmanimData.parsha}</div>
                         )}
                     </>
                 )}

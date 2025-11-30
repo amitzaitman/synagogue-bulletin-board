@@ -27,7 +27,8 @@ const EventItem: React.FC<EventItemProps> = ({ event, time, settings, isStriped,
             className={`flex flex-col border-b border-gray-100 last:border-0 ${isStriped ? 'bg-gray-50' : 'bg-white'} ${onClick ? 'cursor-pointer hover:bg-blue-50' : ''}`}
             style={{
                 fontSize: `${settings.eventTextScale * LAYOUT_CONSTANTS.EVENT.TEXT_SCALE_FACTOR * scale}px`,
-                padding: `${LAYOUT_CONSTANTS.EVENT.PADDING_Y_PX * scale}px ${LAYOUT_CONSTANTS.EVENT.PADDING_X_PX * scale}px`
+                padding: `${(settings.eventPaddingY ?? LAYOUT_CONSTANTS.EVENT.PADDING_Y_PX) * scale}px ${(settings.eventPaddingX ?? LAYOUT_CONSTANTS.EVENT.PADDING_X_PX) * scale}px`,
+                backgroundColor: (event.isHighlighted && settings.highlightColor) ? settings.highlightColor : undefined
             }}
             onClick={(e) => {
                 if (onClick) {

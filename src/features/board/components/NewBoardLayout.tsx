@@ -8,6 +8,7 @@ import { LAYOUT_CONSTANTS } from '../../../shared/constants/layout';
 import EditPanel from '../../editor/components/BoardSettingsForm';
 import EventForm from '../../editor/components/EventForm';
 import EventItemComponent from './EventItem';
+import ZmanimFooter from './ZmanimFooter';
 import {
     DndContext,
     DragOverlay,
@@ -55,6 +56,7 @@ const NewBoardLayout: React.FC<NewBoardLayoutProps> = (props) => {
         isOpen: boolean;
         columnId: string;
         event?: EventItem;
+        initialOrder?: number;
     }>({ isOpen: false, columnId: '' });
 
     // Drag and Drop State
@@ -109,6 +111,11 @@ const NewBoardLayout: React.FC<NewBoardLayoutProps> = (props) => {
 
     const activeEvent = activeId ? events.find(e => e.id === activeId) : null;
 
+    const headerRef = useRef<HTMLDivElement>(null);
+    const footerRef = useRef<HTMLDivElement>(null);
+    const [headerHeight, setHeaderHeight] = useState(0);
+    const [footerHeight, setFooterHeight] = useState(0);
+
     // Measure dimensions
     useEffect(() => {
         const updateDimensions = () => {
@@ -118,14 +125,41 @@ const NewBoardLayout: React.FC<NewBoardLayoutProps> = (props) => {
                     height: containerRef.current.clientHeight
                 });
             }
+            if (headerRef.current) {
+                setHeaderHeight(headerRef.current.clientHeight);
+            }
+            if (footerRef.current) {
+                setFooterHeight(footerRef.current.clientHeight);
+            }
         };
 
         updateDimensions();
         window.addEventListener('resize', updateDimensions);
+
+        // Use ResizeObserver for more robust header measurement
+        const resizeObserver = new ResizeObserver(() => {
+            if (headerRef.current) {
+                setHeaderHeight(headerRef.current.clientHeight);
+            }
+            if (footerRef.current) {
+                setFooterHeight(footerRef.current.clientHeight);
+            }
+        });
+
+        if (headerRef.current) {
+            resizeObserver.observe(headerRef.current);
+        }
+        if (footerRef.current) {
+            resizeObserver.observe(footerRef.current);
+        }
+
         // Also measure after a short delay to ensure layout is stable
         setTimeout(updateDimensions, 100);
 
-        return () => window.removeEventListener('resize', updateDimensions);
+        return () => {
+            window.removeEventListener('resize', updateDimensions);
+            resizeObserver.disconnect();
+        };
     }, []);
 
     // Activity tracking
@@ -161,6 +195,8 @@ const NewBoardLayout: React.FC<NewBoardLayoutProps> = (props) => {
     const { contentScale } = useScaling({
         containerWidth: dimensions.width,
         containerHeight: dimensions.height,
+        headerHeight,
+        footerHeight,
         columns,
         events,
         settings
@@ -191,13 +227,37 @@ const NewBoardLayout: React.FC<NewBoardLayoutProps> = (props) => {
         });
     };
 
+    const handleAddEventBetween = (columnId: string, order: number) => {
+        setEditingEventState({
+            isOpen: true,
+            columnId,
+            event: undefined,
+            initialOrder: order
+        });
+    };
+
     const handleSaveEvent = (savedEvent: EventItem) => {
-        const newEvents = [...events];
+        let newEvents = [...events];
         const index = newEvents.findIndex(e => e.id === savedEvent.id);
 
         if (index >= 0) {
+            // Updating existing event
             newEvents[index] = savedEvent;
         } else {
+            // Adding new event
+            // If we have a specific order (inserted between events), we need to shift others
+            const isInsert = editingEventState.initialOrder !== undefined;
+
+            if (isInsert) {
+                // Shift all events in this column that have order >= savedEvent.order
+                newEvents = newEvents.map(e => {
+                    if (e.columnId === savedEvent.columnId && e.order >= savedEvent.order) {
+                        return { ...e, order: e.order + 1 };
+                    }
+                    return e;
+                });
+            }
+
             newEvents.push(savedEvent);
         }
 
@@ -212,16 +272,19 @@ const NewBoardLayout: React.FC<NewBoardLayoutProps> = (props) => {
     };
 
     return (
-        <div ref={containerRef} className="h-screen w-screen flex flex-col bg-brand-bg overflow-hidden font-sans relative">
+        <div ref={containerRef} className="h-screen w-screen flex flex-col overflow-hidden font-sans relative" style={{ backgroundColor: settings.mainBackgroundColor }}>
             {/* Header */}
-            <div>
-                <Header settings={settings} zmanimData={zmanimData} scale={contentScale} />
+            <div ref={headerRef}>
+                <Header settings={settings} zmanimData={zmanimData} />
             </div>
 
             {/* Main Grid */}
             <main
                 className="flex-1 overflow-hidden"
-                style={{ padding: `${LAYOUT_CONSTANTS.GRID.PADDING_PX * contentScale}px` }}
+                style={{
+                    padding: `${LAYOUT_CONSTANTS.GRID.PADDING_PX * contentScale}px`,
+                    backgroundColor: settings.boardBackgroundColor
+                }}
             >
                 <DndContext
                     sensors={sensors}
@@ -243,6 +306,7 @@ const NewBoardLayout: React.FC<NewBoardLayoutProps> = (props) => {
                                     contentScale={contentScale}
                                     onColumnClick={() => handleColumnClick(column.id)}
                                     onEventClick={handleEventClick}
+                                    onAddEvent={handleAddEventBetween}
                                 />
                             </div>
                         ))}
@@ -268,6 +332,11 @@ const NewBoardLayout: React.FC<NewBoardLayoutProps> = (props) => {
                 </DndContext>
             </main>
 
+            {/* Zmanim Footer */}
+            <div ref={footerRef}>
+                <ZmanimFooter zmanim={zmanimData} settings={settings} />
+            </div>
+
             {/* Controls (Bottom Left) */}
             <div
                 className={`fixed bottom-4 left-4 flex gap-2 transition-opacity duration-300 ${props.isEditMode ? 'opacity-0 pointer-events-none' :
@@ -278,6 +347,7 @@ const NewBoardLayout: React.FC<NewBoardLayoutProps> = (props) => {
                     setControlsVisible(true);
                     if (inactivityTimer.current) clearTimeout(inactivityTimer.current);
                 }}
+                onClick={(e) => e.stopPropagation()}
             >
                 <button
                     onClick={props.onBackToHome}
@@ -341,6 +411,7 @@ const NewBoardLayout: React.FC<NewBoardLayoutProps> = (props) => {
                     columnId={editingEventState.columnId}
                     columnEvents={events.filter(e => e.columnId === editingEventState.columnId)}
                     event={editingEventState.event}
+                    initialOrder={editingEventState.initialOrder}
                     onSave={handleSaveEvent}
                     onCancel={() => setEditingEventState({ isOpen: false, columnId: '' })}
                     onDelete={handleDeleteEvent}

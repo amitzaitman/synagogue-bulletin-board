@@ -1,5 +1,7 @@
 import { EventItem, Column, ZmanimData, BoardSettings, DateSpecificZmanim } from '../types/types';
-import { Location, Zmanim } from '@hebcal/core';
+import { Zmanim } from '@hebcal/core';
+import { createHebcalLocation } from './hebcal';
+import { addMinutes, format, set } from 'date-fns';
 
 export const roundTime = (date: Date, rounding: { direction: 'up' | 'down' | 'nearest'; increment: number; }): Date => {
     const { direction = 'nearest', increment } = rounding || { direction: 'nearest', increment: 1 };
@@ -25,17 +27,14 @@ export const roundTime = (date: Date, rounding: { direction: 'up' | 'down' | 'ne
             break;
     }
 
-    const newDate = new Date(date);
     const hours = Math.floor(roundedSeconds / 3600);
     const minutes = Math.floor((roundedSeconds % 3600) / 60);
-    newDate.setHours(hours, minutes, 0, 0); // seconds reset to 0
-    return newDate;
+
+    return set(date, { hours, minutes, seconds: 0, milliseconds: 0 });
 };
 
 export const formatTime = (date: Date): string => {
-    const hours = String(date.getHours());
-    const minutes = String(date.getMinutes()).padStart(2, '0');
-    return `${hours}:${minutes}`;
+    return format(date, 'H:mm');
 };
 
 // Function to calculate zmanim for a specific date
@@ -45,12 +44,7 @@ export const calculateZmanimForDate = (dateStr: string, settings: BoardSettings)
 
     try {
         const date = new Date(dateStr + 'T12:00:00'); // Parse as noon local time
-        const isIsrael = latitude > 29.45 && latitude < 33.34 && longitude > 34.20 && longitude < 35.90;
-        const timezone = isIsrael ? 'Asia/Jerusalem' : Intl.DateTimeFormat().resolvedOptions().timeZone;
-        const location = new Location(latitude, longitude, isIsrael, timezone);
-        if (elevation) {
-            location.setElevation(elevation);
-        }
+        const location = createHebcalLocation(latitude, longitude, elevation);
 
         const zmanim = new Zmanim(location, date, true);
         return {
@@ -82,9 +76,7 @@ export const calculateAllEventTimes = (
             const timeStr = calculatedTimes.get(eventId);
             if (!timeStr) return null;
             const [hours, minutes] = timeStr.split(':').map(Number);
-            const date = new Date();
-            date.setHours(hours, minutes, 0, 0);
-            return date;
+            return set(new Date(), { hours, minutes, seconds: 0, milliseconds: 0 });
         }
         if (visited.has(eventId)) return null; // Circular dependency
 
@@ -109,14 +101,13 @@ export const calculateAllEventTimes = (
             const { absoluteTime } = event.timeDefinition;
             if (absoluteTime) {
                 const [hours, minutes] = absoluteTime.split(':').map(Number);
-                resultDate = new Date();
-                resultDate.setHours(hours, minutes, 0, 0);
+                resultDate = set(new Date(), { hours, minutes, seconds: 0, milliseconds: 0 });
             }
         } else if (mode === 'relative') {
             const { relativeEventId, offsetMinutes } = event.timeDefinition;
             const targetTime = calculateTime(relativeEventId, new Set(visited));
             if (targetTime) {
-                resultDate = new Date(targetTime.getTime() + offsetMinutes * 60000);
+                resultDate = addMinutes(targetTime, offsetMinutes);
             }
         } else if (mode === 'relativeToZman') {
             const { zman, offsetMinutes } = event.timeDefinition;
@@ -154,7 +145,7 @@ export const calculateAllEventTimes = (
             }
 
             if (zmanTime) {
-                resultDate = new Date(zmanTime.getTime() + offsetMinutes * 60000);
+                resultDate = addMinutes(zmanTime, offsetMinutes);
             }
         }
 

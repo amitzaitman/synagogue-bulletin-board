@@ -5,6 +5,8 @@ import { LAYOUT_CONSTANTS } from '../constants/layout';
 interface UseResponsiveScalingProps {
   containerWidth: number;
   containerHeight: number;
+  headerHeight: number;
+  footerHeight: number;
   columns: Column[];
   events: EventItem[];
   settings: BoardSettings;
@@ -19,6 +21,8 @@ const DEBOUNCE_MS = 100;
 export const useResponsiveScaling = ({
   containerWidth,
   containerHeight,
+  headerHeight,
+  footerHeight,
   columns,
   events,
   settings,
@@ -51,8 +55,8 @@ export const useResponsiveScaling = ({
       return;
     }
 
-    // Calculate available height - we use the full container height
-    const availableHeight = containerHeight;
+    // Calculate available height - use the actual measured header and footer height
+    const availableHeight = containerHeight - headerHeight - footerHeight;
 
     if (availableHeight <= 0) return;
 
@@ -79,72 +83,7 @@ export const useResponsiveScaling = ({
       const container = measureRef.current;
       container.innerHTML = '';
 
-      // 1. Measure Main Header Height (using full container width)
-      container.style.width = `${containerWidth}px`;
-      container.style.boxSizing = 'border-box';
-
-      const titleFontSize = settings.mainTitleSize * LAYOUT_CONSTANTS.HEADER.TITLE_SCALE_FACTOR * scale;
-      const headerPadding = titleFontSize * LAYOUT_CONSTANTS.HEADER.PADDING_EM;
-      container.style.padding = `${headerPadding}px`;
-      container.style.display = 'flex';
-      container.style.flexDirection = 'row'; // Explicitly set row
-      container.style.justifyContent = 'space-between';
-      container.style.alignItems = 'center';
-
-      // Clock Section (Left)
-      const clockDiv = document.createElement('div');
-      clockDiv.style.boxSizing = 'border-box';
-      clockDiv.style.display = 'flex';
-      clockDiv.style.flexDirection = 'column';
-      clockDiv.style.alignItems = 'flex-start';
-      clockDiv.style.width = '25%';
-
-      const clockInner = document.createElement('div');
-      clockInner.style.boxSizing = 'border-box';
-      clockInner.style.fontSize = `${LAYOUT_CONSTANTS.HEADER.CLOCK_FONT_SIZE_REM * scale}rem`;
-      clockInner.style.padding = `${LAYOUT_CONSTANTS.HEADER.CLOCK_PADDING_Y_EM}em ${LAYOUT_CONSTANTS.HEADER.CLOCK_PADDING_X_EM}em`;
-      clockInner.innerText = '00:00:00';
-      clockDiv.appendChild(clockInner);
-      container.appendChild(clockDiv);
-
-      // Title Section (Center)
-      const titleDiv = document.createElement('div');
-      titleDiv.style.boxSizing = 'border-box';
-      titleDiv.style.width = '50%';
-      titleDiv.style.textAlign = 'center';
-      titleDiv.style.fontSize = `${titleFontSize}px`;
-      titleDiv.style.fontWeight = 'bold';
-      titleDiv.style.lineHeight = '1.5';
-      titleDiv.innerText = settings.boardTitle || '';
-      container.appendChild(titleDiv);
-
-      // Date Section (Right)
-      const dateDiv = document.createElement('div');
-      dateDiv.style.boxSizing = 'border-box';
-      dateDiv.style.display = 'flex';
-      dateDiv.style.flexDirection = 'column';
-      dateDiv.style.alignItems = 'flex-end';
-      dateDiv.style.width = '25%';
-
-      const dateInner = document.createElement('div');
-      dateInner.style.boxSizing = 'border-box';
-      dateInner.style.fontSize = `${LAYOUT_CONSTANTS.HEADER.DATE_FONT_SIZE_REM * scale}rem`;
-      dateInner.style.fontWeight = 'bold';
-      dateInner.innerText = 'Date';
-      dateDiv.appendChild(dateInner);
-
-      const parshaInner = document.createElement('div');
-      parshaInner.style.boxSizing = 'border-box';
-      parshaInner.style.fontSize = `${LAYOUT_CONSTANTS.HEADER.PARSHA_FONT_SIZE_REM * scale}rem`;
-      parshaInner.innerText = 'Parsha';
-      dateDiv.appendChild(parshaInner);
-
-      container.appendChild(dateDiv);
-
-      const headerHeight = container.scrollHeight;
-
       // Reset for column measurement
-      container.innerHTML = '';
       container.style.width = `${columnWidth}px`;
       container.style.padding = '0';
       container.style.display = 'flex';
@@ -165,8 +104,8 @@ export const useResponsiveScaling = ({
       targetEvents.forEach(event => {
         const row = document.createElement('div');
         row.style.boxSizing = 'border-box';
-        const py = LAYOUT_CONSTANTS.EVENT.PADDING_Y_PX * scale;
-        const px = LAYOUT_CONSTANTS.EVENT.PADDING_X_PX * scale;
+        const py = (settings.eventPaddingY ?? LAYOUT_CONSTANTS.EVENT.PADDING_Y_PX) * scale;
+        const px = (settings.eventPaddingX ?? LAYOUT_CONSTANTS.EVENT.PADDING_X_PX) * scale;
         row.style.padding = `${py}px ${px}px`;
         row.style.borderBottom = '1px solid #eee';
         row.style.display = 'flex';
@@ -191,11 +130,12 @@ export const useResponsiveScaling = ({
       });
       container.appendChild(list);
 
-      // Total Height = Header + Top Padding + ColumnHeader + EventsList + Bottom Padding
+      // Total Height = ColumnHeader + EventsList + Bottom Padding
+      // Note: Header height is already subtracted from availableHeight
       const paddingY = LAYOUT_CONSTANTS.GRID.PADDING_PX * scale;
-      const totalHeight = headerHeight + paddingY + colHeaderHeight + container.scrollHeight + paddingY;
+      const totalHeight = paddingY + colHeaderHeight + container.scrollHeight + paddingY;
 
-      console.log(`Scale: ${scale}, Header: ${headerHeight}, ColHeader: ${colHeaderHeight}, Events: ${container.scrollHeight}, Total: ${totalHeight}, Available: ${availableHeight}`);
+      // console.log(`Scale: ${scale}, Header: ${headerHeight}, Footer: ${footerHeight}, ColHeader: ${colHeaderHeight}, Events: ${container.scrollHeight}, Total: ${totalHeight}, Available: ${availableHeight}`);
       return totalHeight;
     };
 
@@ -216,7 +156,7 @@ export const useResponsiveScaling = ({
     }
 
     setContentScale(optimal);
-  }, [containerWidth, containerHeight, columns, events, settings]);
+  }, [containerWidth, containerHeight, headerHeight, footerHeight, columns, events, settings]);
 
   useEffect(() => {
     if (timeoutRef.current) clearTimeout(timeoutRef.current);

@@ -97,13 +97,13 @@ const ColumnHeader: React.FC<ColumnHeaderProps> = ({
                     <div className="flex gap-2 justify-center">
                         <button
                             onClick={onSaveColumnTitle}
-                            className="bg-green-500 hover:bg-green-600 text-white text-xs font-bold py-1 px-3 rounded"
+                            className="bg-green-500 hover:bg-green-600 text-white text-xs py-1 px-3 rounded"
                         >
                             שמור
                         </button>
                         <button
                             onClick={() => onSetEditingColumn?.()}
-                            className="bg-stone-300 hover:bg-stone-400 text-stone-700 text-xs font-bold py-1 px-3 rounded"
+                            className="bg-stone-300 hover:bg-stone-400 text-stone-700 text-xs py-1 px-3 rounded"
                         >
                             ביטול
                         </button>
@@ -112,7 +112,7 @@ const ColumnHeader: React.FC<ColumnHeaderProps> = ({
             ) : (
                 <>
                     <h2
-                        className="font-title cursor-pointer hover:opacity-80"
+                        className="cursor-pointer hover:opacity-80"
                         style={{ fontSize: titleFontSize, color: settings.columnTitleColor }}
                         onClick={isEditMode && onSetEditingColumn ? (e) => { e.stopPropagation(); onSetEditingColumn(); } : undefined}
                     >

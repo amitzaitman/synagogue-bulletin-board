@@ -1,6 +1,5 @@
 
 import { initializeApp } from 'firebase/app';
-import { getFirestore } from 'firebase/firestore';
 
 // Firebase configuration from environment variables
 const firebaseConfig = {
@@ -20,4 +19,8 @@ if (!firebaseConfig.apiKey || !firebaseConfig.projectId) {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 
-export const db = getFirestore(app);
+import { initializeFirestore, persistentLocalCache } from 'firebase/firestore';
+
+export const db = initializeFirestore(app, {
+  localCache: persistentLocalCache()
+});
