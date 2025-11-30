@@ -19,6 +19,7 @@ interface ColumnHeaderProps {
     onDeleteColumn?: (id: string) => void;
     onColumnDragStart?: (e: React.DragEvent, columnId: string) => void;
     onColumnDragEnd?: () => void;
+    onEditColumnSettings?: () => void;
 }
 
 const ColumnHeader: React.FC<ColumnHeaderProps> = ({
@@ -33,7 +34,8 @@ const ColumnHeader: React.FC<ColumnHeaderProps> = ({
     onSetEditingColumn,
     onDeleteColumn,
     onColumnDragStart,
-    onColumnDragEnd
+    onColumnDragEnd,
+    onEditColumnSettings
 }) => {
     const titleFontSize = `${LAYOUT_CONSTANTS.COLUMN.HEADER_TITLE_BASE_EM * (settings.columnTitleSize / 100)}em`;
 
@@ -114,7 +116,7 @@ const ColumnHeader: React.FC<ColumnHeaderProps> = ({
                     <h2
                         className="cursor-pointer hover:opacity-80"
                         style={{ fontSize: titleFontSize, color: settings.columnTitleColor }}
-                        onClick={isEditMode && onSetEditingColumn ? (e) => { e.stopPropagation(); onSetEditingColumn(); } : undefined}
+                        onClick={isEditMode && onEditColumnSettings ? (e) => { e.stopPropagation(); onEditColumnSettings(); } : undefined}
                     >
                         {column.title}
                     </h2>
@@ -126,7 +128,7 @@ const ColumnHeader: React.FC<ColumnHeaderProps> = ({
                                     <span className="mr-1">({new Date(column.specificDate).toLocaleDateString('he-IL')})</span>
                                 )}
                             </span>
-                            <button onClick={(e) => { e.stopPropagation(); onSetEditingColumn?.(); }} className="text-stone-400 hover:text-stone-800 p-0.5" title="ערוך עמודה">
+                            <button onClick={(e) => { e.stopPropagation(); onEditColumnSettings?.(); }} className="text-stone-400 hover:text-stone-800 p-0.5" title="ערוך עמודה">
                                 <PencilIcon />
                             </button>
                             <button onClick={(e) => { e.stopPropagation(); onDeleteColumn?.(column.id); }} className="text-red-500 hover:text-red-700 p-0.5" title="מחק עמודה">

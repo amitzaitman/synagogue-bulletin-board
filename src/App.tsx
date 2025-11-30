@@ -69,9 +69,15 @@ const BoardPage: React.FC<{ onOpenDebug: () => void }> = ({ onOpenDebug }) => {
   );
 };
 
+import { logVersion } from './utils/version';
+
 const App: React.FC = () => {
   useFirestoreNetwork();
   const [isDebugOpen, setIsDebugOpen] = useState(false);
+
+  useEffect(() => {
+    logVersion();
+  }, []);
 
   return (
     <Router>

@@ -6,9 +6,11 @@ import Column from './Column';
 import { useResponsiveScaling as useScaling } from '../../../shared/hooks/useResponsiveScaling';
 import { LAYOUT_CONSTANTS } from '../../../shared/constants/layout';
 import EditPanel from '../../editor/components/BoardSettingsForm';
+import ColumnSettingsForm from '../../editor/components/ColumnSettingsForm';
 import EventForm from '../../editor/components/EventForm';
 import EventItemComponent from './EventItem';
 import ZmanimFooter from './ZmanimFooter';
+import BoardMessagesBox from './BoardMessagesBox';
 import {
     DndContext,
     DragOverlay,
@@ -23,6 +25,8 @@ import {
 import {
     arrayMove,
     sortableKeyboardCoordinates,
+    horizontalListSortingStrategy,
+    SortableContext,
 } from '@dnd-kit/sortable';
 
 interface NewBoardLayoutProps {
@@ -59,6 +63,12 @@ const NewBoardLayout: React.FC<NewBoardLayoutProps> = (props) => {
         initialOrder?: number;
     }>({ isOpen: false, columnId: '' });
 
+    // Column Editing State
+    const [editingColumnSettings, setEditingColumnSettings] = useState<{
+        isOpen: boolean;
+        columnId: string;
+    }>({ isOpen: false, columnId: '' });
+
     // Drag and Drop State
     const [activeId, setActiveId] = useState<string | null>(null);
 
@@ -80,29 +90,51 @@ const NewBoardLayout: React.FC<NewBoardLayoutProps> = (props) => {
     const handleDragEnd = (event: DragEndEvent) => {
         const { active, over } = event;
 
-        if (over && active.id !== over.id) {
-            const activeEvent = events.find(e => e.id === active.id);
-            const overEvent = events.find(e => e.id === over.id);
+        if (!over) {
+            setActiveId(null);
+            return;
+        }
 
-            if (activeEvent && overEvent && activeEvent.columnId === overEvent.columnId) {
-                const columnEvents = events
-                    .filter(e => e.columnId === activeEvent.columnId)
-                    .sort((a, b) => a.order - b.order);
+        if (active.id !== over.id) {
+            // Check if we are dragging a column
+            const activeColumn = columns.find(c => c.id === active.id);
+            const overColumn = columns.find(c => c.id === over.id);
 
-                const oldIndex = columnEvents.findIndex(e => e.id === active.id);
-                const newIndex = columnEvents.findIndex(e => e.id === over.id);
+            if (activeColumn && overColumn) {
+                const oldIndex = columns.findIndex(c => c.id === active.id);
+                const newIndex = columns.findIndex(c => c.id === over.id);
 
-                const newColumnEvents = arrayMove(columnEvents, oldIndex, newIndex);
+                // Reorder columns
+                const newColumns = arrayMove(columns, oldIndex, newIndex);
+                // Update order property
+                const updatedColumns = newColumns.map((c, index) => ({ ...c, order: index }));
+                props.saveColumns(updatedColumns);
+            }
+            // Check if we are dragging an event
+            else {
+                const activeEvent = events.find(e => e.id === active.id);
+                const overEvent = events.find(e => e.id === over.id);
 
-                const updatedEvents = events.map(e => {
-                    if (e.columnId === activeEvent.columnId) {
-                        const newOrderIndex = newColumnEvents.findIndex(ne => ne.id === e.id);
-                        return { ...e, order: newOrderIndex };
-                    }
-                    return e;
-                });
+                if (activeEvent && overEvent && activeEvent.columnId === overEvent.columnId) {
+                    const columnEvents = events
+                        .filter(e => e.columnId === activeEvent.columnId)
+                        .sort((a, b) => a.order - b.order);
 
-                props.saveEvents(updatedEvents);
+                    const oldIndex = columnEvents.findIndex(e => e.id === active.id);
+                    const newIndex = columnEvents.findIndex(e => e.id === over.id);
+
+                    const newColumnEvents = arrayMove(columnEvents, oldIndex, newIndex);
+
+                    const updatedEvents = events.map(e => {
+                        if (e.columnId === activeEvent.columnId) {
+                            const newOrderIndex = newColumnEvents.findIndex(ne => ne.id === e.id);
+                            return { ...e, order: newOrderIndex };
+                        }
+                        return e;
+                    });
+
+                    props.saveEvents(updatedEvents);
+                }
             }
         }
 
@@ -110,6 +142,7 @@ const NewBoardLayout: React.FC<NewBoardLayoutProps> = (props) => {
     };
 
     const activeEvent = activeId ? events.find(e => e.id === activeId) : null;
+    const activeColumn = activeId ? columns.find(c => c.id === activeId) : null;
 
     const headerRef = useRef<HTMLDivElement>(null);
     const footerRef = useRef<HTMLDivElement>(null);
@@ -211,6 +244,42 @@ const NewBoardLayout: React.FC<NewBoardLayoutProps> = (props) => {
     // Sort columns by order
     const sortedColumns = [...columns].sort((a, b) => a.order - b.order);
 
+    const handleEditColumnSettings = (columnId: string) => {
+        setEditingColumnSettings({
+            isOpen: true,
+            columnId
+        });
+    };
+
+    const handleSaveColumnSettings = (updatedColumn: IColumn) => {
+        const newColumns = columns.map(c => c.id === updatedColumn.id ? updatedColumn : c);
+        props.saveColumns(newColumns);
+        setEditingColumnSettings({ isOpen: false, columnId: '' });
+    };
+
+    const handleDeleteColumn = (columnId: string) => {
+        const newColumns = columns.filter(c => c.id !== columnId);
+        // Also delete events associated with this column
+        const newEvents = events.filter(e => e.columnId !== columnId);
+
+        props.saveColumns(newColumns);
+        props.saveEvents(newEvents);
+        setEditingColumnSettings({ isOpen: false, columnId: '' });
+    };
+
+    const handleAddColumn = () => {
+        const maxOrder = columns.reduce((max, c) => Math.max(max, c.order), -1);
+        const newColumn: IColumn = {
+            id: crypto.randomUUID(),
+            title: 'עמודה חדשה',
+            columnType: 'weekdays',
+            order: maxOrder + 1
+        };
+        props.saveColumns([...columns, newColumn]);
+        // Optionally open settings for the new column immediately
+        setEditingColumnSettings({ isOpen: true, columnId: newColumn.id });
+    };
+
     const handleColumnClick = (columnId: string) => {
         setEditingEventState({
             isOpen: true,
@@ -271,6 +340,8 @@ const NewBoardLayout: React.FC<NewBoardLayoutProps> = (props) => {
         setEditingEventState({ isOpen: false, columnId: '' });
     };
 
+
+
     return (
         <div ref={containerRef} className="h-screen w-screen flex flex-col overflow-hidden font-sans relative" style={{ backgroundColor: settings.mainBackgroundColor }}>
             {/* Header */}
@@ -292,41 +363,59 @@ const NewBoardLayout: React.FC<NewBoardLayoutProps> = (props) => {
                     onDragStart={handleDragStart}
                     onDragEnd={handleDragEnd}
                 >
-                    <div
-                        className="h-full flex"
-                        style={{ gap: `${LAYOUT_CONSTANTS.GRID.GAP_PX * contentScale}px` }}
-                    >
-                        {sortedColumns.map(column => (
-                            <div key={column.id} className="flex-1 min-w-0 h-full">
-                                <Column
-                                    column={column}
-                                    events={events.filter(e => e.columnId === column.id).sort((a, b) => a.order - b.order)}
-                                    settings={settings}
-                                    calculatedTimes={calculatedTimes as Map<string, string>}
-                                    contentScale={contentScale}
-                                    onColumnClick={() => handleColumnClick(column.id)}
-                                    onEventClick={handleEventClick}
-                                    onAddEvent={handleAddEventBetween}
-                                />
-                            </div>
-                        ))}
+                    <SortableContext items={sortedColumns.map(c => c.id)} strategy={horizontalListSortingStrategy}>
+                        <div className="h-full flex flex-col w-full">
+                            <BoardMessagesBox settings={settings} scale={contentScale} />
 
-                        {/* Fallback if no columns */}
-                        {sortedColumns.length === 0 && (
-                            <div className="flex-1 flex items-center justify-center text-gray-500 text-xl">
-                                לא נמצאו עמודות להצגה. אנא הוסף עמודות במצב עריכה.
+                            <div
+                                className="flex-1 flex min-h-0 w-full"
+                                style={{ gap: `${LAYOUT_CONSTANTS.GRID.GAP_PX * contentScale}px` }}
+                            >
+                                {sortedColumns.map(column => (
+                                    <Column
+                                        key={column.id}
+                                        column={column}
+                                        events={events.filter(e => e.columnId === column.id).sort((a, b) => a.order - b.order)}
+                                        settings={settings}
+                                        calculatedTimes={calculatedTimes as Map<string, string>}
+                                        contentScale={contentScale}
+                                        onColumnClick={() => handleColumnClick(column.id)}
+                                        onEventClick={handleEventClick}
+                                        onAddEvent={handleAddEventBetween}
+                                        onEditColumnSettings={() => handleEditColumnSettings(column.id)}
+                                        className="flex-1 h-full min-w-0"
+                                    />
+                                ))}
+
+                                {/* Fallback if no columns */}
+                                {sortedColumns.length === 0 && (
+                                    <div className="w-full flex items-center justify-center text-gray-500 text-xl">
+                                        לא נמצאו עמודות להצגה. אנא הוסף עמודות במצב עריכה.
+                                    </div>
+                                )}
                             </div>
-                        )}
-                    </div>
+                        </div>
+                    </SortableContext>
                     <DragOverlay>
                         {activeEvent ? (
                             <EventItemComponent
                                 event={activeEvent}
                                 time={calculatedTimes.get(activeEvent.id) ?? null}
                                 settings={settings}
-                                isStriped={false} // Or preserve striping if possible, but usually overlay is distinct
+                                isStriped={false}
                                 scale={contentScale}
                             />
+                        ) : activeColumn ? (
+                            <div className="h-full opacity-80">
+                                <Column
+                                    column={activeColumn}
+                                    events={events.filter(e => e.columnId === activeColumn.id).sort((a, b) => a.order - b.order)}
+                                    settings={settings}
+                                    calculatedTimes={calculatedTimes as Map<string, string>}
+                                    contentScale={contentScale}
+                                    className="h-full bg-white shadow-2xl"
+                                />
+                            </div>
                         ) : null}
                     </DragOverlay>
                 </DndContext>
@@ -343,7 +432,6 @@ const NewBoardLayout: React.FC<NewBoardLayoutProps> = (props) => {
                     controlsVisible ? 'opacity-100' : 'opacity-0'
                     }`}
                 onMouseEnter={() => {
-                    // Keep visible while hovering
                     setControlsVisible(true);
                     if (inactivityTimer.current) clearTimeout(inactivityTimer.current);
                 }}
@@ -385,12 +473,23 @@ const NewBoardLayout: React.FC<NewBoardLayoutProps> = (props) => {
                     <div className="bg-white rounded-xl shadow-2xl flex flex-col w-full max-w-4xl max-h-[90vh] overflow-hidden animate-fade-in">
                         <div className="p-4 bg-gray-50 border-b flex justify-between items-center">
                             <h2 className="text-xl font-bold text-gray-800">הגדרות לוח</h2>
-                            <button
-                                onClick={props.onSaveChanges}
-                                className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition-colors font-medium"
-                            >
-                                סגור ושמור
-                            </button>
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={handleAddColumn}
+                                    className="bg-brand-accent text-white px-4 py-2 rounded-lg hover:bg-brand-dark transition-colors font-medium flex items-center gap-2"
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                                    </svg>
+                                    הוסף עמודה
+                                </button>
+                                <button
+                                    onClick={props.onSaveChanges}
+                                    className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition-colors font-medium"
+                                >
+                                    סגור ושמור
+                                </button>
+                            </div>
                         </div>
                         <div className="flex-1 overflow-hidden relative">
                             <EditPanel
@@ -416,6 +515,20 @@ const NewBoardLayout: React.FC<NewBoardLayoutProps> = (props) => {
                     onCancel={() => setEditingEventState({ isOpen: false, columnId: '' })}
                     onDelete={handleDeleteEvent}
                 />
+            )}
+
+            {/* Column Settings Modal */}
+            {editingColumnSettings.isOpen && (
+                <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+                    <div className="bg-white rounded-xl shadow-2xl flex flex-col w-full max-w-md overflow-hidden animate-fade-in">
+                        <ColumnSettingsForm
+                            column={columns.find(c => c.id === editingColumnSettings.columnId)!}
+                            onSave={handleSaveColumnSettings}
+                            onCancel={() => setEditingColumnSettings({ isOpen: false, columnId: '' })}
+                            onDelete={handleDeleteColumn}
+                        />
+                    </div>
+                </div>
             )}
         </div>
     );

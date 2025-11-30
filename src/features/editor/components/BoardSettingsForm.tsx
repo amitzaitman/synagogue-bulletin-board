@@ -252,6 +252,16 @@ const EditPanel: React.FC<EditPanelProps> = React.forwardRef<{
               />
             </div>
             <div>
+              <label className={labelClass}>הודעות לוח (כל שורה הודעה נפרדת)</label>
+              <textarea
+                value={settings.boardMessages || ''}
+                onChange={(e) => handleSettingChange('boardMessages', e.target.value)}
+                className={`${inputClass} h-32 resize-y`}
+                placeholder="ברוכים הבאים לבית הכנסת&#10;זמני התפילות מעודכנים&#10;נא לשמור על השקט"
+                dir="rtl"
+              />
+            </div>
+            <div>
               <label className={labelClass}>ערכת נושא</label>
               <select
                 value={settings.theme}

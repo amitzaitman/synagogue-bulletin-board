@@ -1,13 +1,13 @@
 // types used across the app
 export type EventType = 'prayer' | 'class' | 'freeText';
 
-export type ColumnType = 'shabbat' | 'weekdays' | 'moed';
+export type ColumnType = 'shabbat' | 'weekdays' | 'moed' | 'messages';
 
 export interface Column {
   id: string;
   title: string;
   order: number;
-  columnType: ColumnType; // shabbat = upcoming Shabbat, weekdays = Sun-Thu, moed = specific date
+  columnType: ColumnType; // shabbat = upcoming Shabbat, weekdays = Sun-Thu, moed = specific date, messages = announcements
   specificDate?: string; // ISO date string (YYYY-MM-DD) - only used when columnType is 'moed'
 }
 
@@ -121,4 +121,7 @@ export interface BoardSettings {
   latitude?: number;
   longitude?: number;
   zoomLevel?: number; // Zoom level for the entire board view
+
+  // Messages
+  boardMessages?: string; // New line separated messages
 }

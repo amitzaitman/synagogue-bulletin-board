@@ -10,9 +10,11 @@ interface EventItemProps {
     isStriped: boolean;
     scale?: number;
     onClick?: () => void;
+    className?: string;
+    fontSize?: number;
 }
 
-const EventItem: React.FC<EventItemProps> = ({ event, time, settings, isStriped, scale = 1, onClick }) => {
+const EventItem: React.FC<EventItemProps> = ({ event, time, settings, isStriped, scale = 1, onClick, className, fontSize }) => {
     const getEventColor = () => {
         switch (event.type) {
             case 'prayer': return settings.prayerColor;
@@ -22,11 +24,16 @@ const EventItem: React.FC<EventItemProps> = ({ event, time, settings, isStriped,
         }
     };
 
+    // Calculate font size: use override if provided (as percentage), otherwise use settings
+    const calculatedFontSize = fontSize
+        ? `${(fontSize / 100) * LAYOUT_CONSTANTS.EVENT.TEXT_SCALE_FACTOR * scale}rem`
+        : `${settings.eventTextScale * LAYOUT_CONSTANTS.EVENT.TEXT_SCALE_FACTOR * scale}px`;
+
     return (
         <div
-            className={`flex flex-col border-b border-gray-100 last:border-0 ${isStriped ? 'bg-gray-50' : 'bg-white'} ${onClick ? 'cursor-pointer hover:bg-blue-50' : ''}`}
+            className={`flex flex-col border-b border-gray-100 last:border-0 ${isStriped ? 'bg-gray-50' : 'bg-white'} ${onClick ? 'cursor-pointer hover:bg-blue-50' : ''} ${className || ''}`}
             style={{
-                fontSize: `${settings.eventTextScale * LAYOUT_CONSTANTS.EVENT.TEXT_SCALE_FACTOR * scale}px`,
+                fontSize: calculatedFontSize,
                 padding: `${(settings.eventPaddingY ?? LAYOUT_CONSTANTS.EVENT.PADDING_Y_PX) * scale}px ${(settings.eventPaddingX ?? LAYOUT_CONSTANTS.EVENT.PADDING_X_PX) * scale}px`,
                 backgroundColor: (event.isHighlighted && settings.highlightColor) ? settings.highlightColor : undefined
             }}

@@ -33,4 +33,7 @@ export default defineConfig({
     })
   ],
   base: '/',
+  define: {
+    'import.meta.env.APP_VERSION': JSON.stringify(process.env.npm_package_version),
+  },
 })

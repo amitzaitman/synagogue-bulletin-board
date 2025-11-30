@@ -11,6 +11,8 @@ interface SortableEventItemProps {
     isStriped: boolean;
     scale?: number;
     onClick?: () => void;
+    className?: string;
+    fontSize?: number;
 }
 
 const SortableEventItem: React.FC<SortableEventItemProps> = (props) => {
