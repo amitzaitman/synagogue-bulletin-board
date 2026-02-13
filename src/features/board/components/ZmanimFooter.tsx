@@ -53,15 +53,15 @@ const ZmanimFooter: React.FC<ZmanimFooterProps> = ({ zmanim, settings, lastSyncT
                     </div>
                 ))}
             </div>
-            <div className="fixed top-0 right-0 p-1 flex flex-col items-end opacity-30 hover:opacity-100 transition-opacity duration-300 select-none z-50 text-stone-500 pointer-events-auto" title="מידע מערכת">
-                <div className="text-[10px] font-mono">v{import.meta.env.APP_VERSION}</div>
-                {lastSyncTime && (
-                    <div className="text-[9px] flex items-center gap-1 mt-0.5" title={`סונכרן לאחרונה: ${lastSyncTime.toLocaleString('he-IL')}`}>
-                        <span className="w-1.5 h-1.5 rounded-full bg-green-500/50 animate-pulse"></span>
-                        {formatSyncTime(lastSyncTime)}
-                    </div>
-                )}
+            <div className="fixed top-0 left-0 p-1 text-[10px] opacity-20 hover:opacity-100 select-none z-50 text-stone-500 pointer-events-auto" title="Build Version">
+                v{import.meta.env.APP_VERSION}
             </div>
+            {lastSyncTime && (
+                <div className="fixed top-0 right-0 p-1 flex items-center gap-1 opacity-30 hover:opacity-100 transition-opacity duration-300 select-none z-50 text-stone-500 pointer-events-auto" title={`סונכרן לאחרונה: ${lastSyncTime.toLocaleString('he-IL')}`}>
+                    <span className="w-1.5 h-1.5 rounded-full bg-green-500/50 animate-pulse"></span>
+                    <span className="text-[10px] font-mono">{formatSyncTime(lastSyncTime)}</span>
+                </div>
+            )}
         </div>
     );
 };
