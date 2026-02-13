@@ -47,6 +47,9 @@ const ZmanimFooter: React.FC<ZmanimFooterProps> = ({ zmanim, settings }) => {
                         <span className="font-medium text-[min(14px,0.9vw)]">{item.time}</span>
                     </div>
                 ))}
+                <div className="text-[10px] opacity-30 mr-auto pl-1 select-none" title="Build Version">
+                    v{import.meta.env.APP_VERSION}
+                </div>
             </div>
         </div>
     );

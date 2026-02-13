@@ -1,4 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+// @vitest-environment node
+import { describe, it, expect, vi } from 'vitest';
 import { set } from 'date-fns';
 import { roundTime, formatTime, calculateAllEventTimes } from '../timeCalculations';
 import type { EventItem, Column, ZmanimData, BoardSettings } from '../../types/types';
@@ -41,7 +42,7 @@ const defaultSettings: BoardSettings = {
 
 const shabbatColumn: Column = { id: 'col-shabbat', title: 'שבת', order: 0, columnType: 'shabbat' };
 const weekdaysColumn: Column = { id: 'col-weekdays', title: 'ימי חול', order: 1, columnType: 'weekdays' };
-const moedColumn: Column = { id: 'col-moed', title: 'מועד', order: 2, columnType: 'moed', specificDate: '2026-03-15' };
+
 
 // ================================================================
 //  roundTime

@@ -1,13 +1,13 @@
 {
   "name": "synagogue-bulletin-board",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.0.2",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "deploy": "npm run build && firebase deploy",
+    "deploy": "npm version patch --no-git-tag-version && npm run build && firebase deploy",
     "test": "vitest"
   },
   "dependencies": {
