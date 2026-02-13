@@ -40,14 +40,14 @@ const ZmanimFooter: React.FC<ZmanimFooterProps> = ({ zmanim, settings }) => {
             className="bg-brand-dark text-white py-1 px-2 border-t border-white/10 shadow-lg z-10"
             style={{ backgroundColor: settings.zmanimBackgroundColor }}
         >
-            <div className="flex flex-nowrap justify-between items-center w-full">
+            <div className="relative flex flex-nowrap justify-center items-center w-full gap-4">
                 {footerItems.map((item, index) => (
                     <div key={index} className="flex items-center gap-1 whitespace-nowrap">
                         <span className="text-blue-200 text-[min(14px,0.9vw)]">{item.label}:</span>
                         <span className="font-medium text-[min(14px,0.9vw)]">{item.time}</span>
                     </div>
                 ))}
-                <div className="text-[10px] opacity-30 mr-auto pl-1 select-none" title="Build Version">
+                <div className="absolute left-2 text-[10px] opacity-30 select-none pb-0.5" title="Build Version">
                     v{import.meta.env.APP_VERSION}
                 </div>
             </div>
