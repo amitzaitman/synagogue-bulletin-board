@@ -24,11 +24,11 @@ const BoardPage: React.FC<{ onOpenDebug: () => void }> = ({ onOpenDebug }) => {
     }
   }, [slugOrId]);
 
-  const { settings, saveSettings, loading: settingsLoading } = useBoardSettings(slugOrId);
-  const { events, saveEvents, lastRefresh, loading: eventsLoading } = useEvents(slugOrId);
-  const { columns, saveColumns, loading: columnsLoading } = useColumns(slugOrId);
+  const { lastSyncTime, isOnline, updateSyncTime } = useLastSync();
+  const { settings, saveSettings, loading: settingsLoading } = useBoardSettings(slugOrId, updateSyncTime);
+  const { events, saveEvents, lastRefresh, loading: eventsLoading } = useEvents(slugOrId, updateSyncTime);
+  const { columns, saveColumns, loading: columnsLoading } = useColumns(slugOrId, updateSyncTime);
   const { zmanimData, loading: zmanimLoading, error: zmanimError } = useZmanim(settings);
-  const { lastSyncTime, isOnline } = useLastSync();
 
   const isLoading = slugOrId && (settingsLoading || eventsLoading || columnsLoading);
 

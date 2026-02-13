@@ -17,7 +17,7 @@ export const defaultEvents: EventItem[] = [
 
 const getLocalStorageKey = (synagogueId: string) => `syn_${synagogueId}_events`;
 
-export const useEvents = (synagogueId: string | undefined) => {
+export const useEvents = (synagogueId: string | undefined, onSync?: () => void) => {
   const { showToast } = useToast();
 
   // Track whether we initialized from localStorage (used to skip loading spinner)
@@ -71,6 +71,9 @@ export const useEvents = (synagogueId: string | undefined) => {
     if (loading) return;
 
     if (value) {
+      // Notify sync occurred (even if data is unchanged, we successfully contacted server)
+      if (onSync) onSync();
+
       const sorted = (value as EventItem[]).sort((a, b) => a.order - b.order);
 
       // If server data is empty and we have no local data, use defaults
@@ -100,7 +103,7 @@ export const useEvents = (synagogueId: string | undefined) => {
       }
       setInitialLoadDone(true);
     }
-  }, [value, loading, error, synagogueId]);
+  }, [value, loading, error, synagogueId, onSync]);
 
   const saveEvents = useCallback(async (newEvents: EventItem[]) => {
     if (!synagogueId) {

@@ -11,7 +11,7 @@ export const defaultSettings = DEFAULT_BOARD_SETTINGS;
 
 const getLocalStorageKey = (synagogueId: string) => `syn_${synagogueId}_settings`;
 
-export const useBoardSettings = (synagogueId: string | undefined) => {
+export const useBoardSettings = (synagogueId: string | undefined, onSync?: () => void) => {
   const { showToast } = useToast();
 
   // Track whether we initialized from localStorage (used to skip loading spinner)
@@ -61,6 +61,9 @@ export const useBoardSettings = (synagogueId: string | undefined) => {
     if (loading) return;
 
     if (value) {
+      // Notify sync occurred
+      if (onSync) onSync();
+
       const loaded = { ...defaultSettings, ...(value || {}) };
       // Validate location data, falling back to defaults if invalid
       if (typeof loaded.latitude !== 'number' || typeof loaded.longitude !== 'number' ||
@@ -91,7 +94,7 @@ export const useBoardSettings = (synagogueId: string | undefined) => {
         setInitialLoadDone(true);
       }
     }
-  }, [value, loading, error, synagogueId]);
+  }, [value, loading, error, synagogueId, onSync]);
 
   const saveSettings = useCallback(async (newSettings: BoardSettings) => {
     if (!synagogueId) {

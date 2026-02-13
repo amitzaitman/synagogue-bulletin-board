@@ -13,7 +13,7 @@ export const defaultColumns: Column[] = [
 
 const getLocalStorageKey = (synagogueId: string) => `syn_${synagogueId}_columns`;
 
-export const useColumns = (synagogueId: string | undefined) => {
+export const useColumns = (synagogueId: string | undefined, onSync?: () => void) => {
   const { showToast } = useToast();
 
   // Track whether we initialized from localStorage (used to skip loading spinner)
@@ -64,6 +64,9 @@ export const useColumns = (synagogueId: string | undefined) => {
     if (loading) return;
 
     if (value) {
+      // Notify sync occurred
+      if (onSync) onSync();
+
       const sorted = (value as Column[]).sort((a, b) => a.order - b.order);
       // Migration/Default handling: ensure columnType exists
       const withDefaults = sorted.map(col => ({
@@ -93,7 +96,7 @@ export const useColumns = (synagogueId: string | undefined) => {
       }
       setInitialLoadDone(true);
     }
-  }, [value, loading, error, synagogueId]);
+  }, [value, loading, error, synagogueId, onSync]);
 
   const saveColumns = useCallback(async (newColumns: Column[]) => {
     if (!synagogueId) {

@@ -467,7 +467,7 @@ const NewBoardLayout: React.FC<NewBoardLayoutProps> = (props) => {
 
                 {/* Zmanim Footer */}
                 < div ref={footerRef} >
-                    <ZmanimFooter zmanim={zmanimData} settings={settings} />
+                    <ZmanimFooter zmanim={zmanimData} settings={settings} lastSyncTime={props.lastSyncTime} />
                 </div >
 
                 {/* Controls (Bottom Left) */}
