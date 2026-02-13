@@ -288,7 +288,7 @@ const EditPanel: React.FC<EditPanelProps> = React.forwardRef<{
 
             <div className="pt-4 border-t border-gray-200">
               <h3 className="font-semibold text-stone-900 mb-4">ריווח אירועים</h3>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className={labelClass}>מרווח אנכי (מעל/מתחת): {settings.eventPaddingY ?? 6}px</label>
                   <input
@@ -400,7 +400,7 @@ const EditPanel: React.FC<EditPanelProps> = React.forwardRef<{
           <div className="space-y-6 max-w-2xl mx-auto animate-fade-in">
             <div className="bg-stone-50 p-4 rounded-lg border border-stone-200">
               <h4 className="font-semibold mb-2">מיקום נוכחי</h4>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className={labelClass}>קו רוחב (Latitude)</label>
                   <input type="number" step="0.001" value={settings.latitude} onChange={(e) => handleSettingChange('latitude', parseFloat(e.target.value) || 0)} className={inputClass} />

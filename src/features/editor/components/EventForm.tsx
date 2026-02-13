@@ -98,7 +98,7 @@ const EventForm: React.FC<EventFormProps> = ({ columnId, columnEvents, event, in
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-6xl max-h-[96vh] overflow-hidden flex flex-col">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-6xl max-h-[90vh] overflow-hidden flex flex-col">
                 {/* Modal Header */}
                 <div className="bg-gradient-to-r from-amber-500 to-amber-600 p-4 text-white flex items-center justify-between shrink-0">
                     <h2 className="text-xl font-bold">{event ? 'עריכת אירוע' : 'הוספת אירוע חדש'}</h2>
@@ -117,7 +117,7 @@ const EventForm: React.FC<EventFormProps> = ({ columnId, columnEvents, event, in
                 {/* Modal Content - Scrollable */}
                 <div className="flex-1 overflow-y-auto p-5">
                     <form onSubmit={handleSubmit(onSubmit)} id="event-form">
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {/* Event Type */}
                             <div>
                                 <label className="block text-sm font-medium text-stone-800 mb-1">סוג אירוע</label>
@@ -145,9 +145,9 @@ const EventForm: React.FC<EventFormProps> = ({ columnId, columnEvents, event, in
 
                             {/* Time Definition Section */}
                             {isTimedEvent && (
-                                <fieldset className="col-span-2 space-y-3 p-4 bg-gradient-to-br from-stone-50 to-stone-100 border-2 border-stone-300 rounded-xl shadow-sm">
+                                <fieldset className="col-span-1 md:col-span-2 space-y-3 p-4 bg-gradient-to-br from-stone-50 to-stone-100 border-2 border-stone-300 rounded-xl shadow-sm">
                                     <legend className="text-sm font-semibold text-stone-800 px-2 bg-white border border-stone-300 rounded-lg">הגדרת זמן</legend>
-                                    <div className="grid grid-cols-2 gap-4">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                         {/* Time Mode Selection */}
                                         <div>
                                             <label className="block text-xs font-medium text-stone-700 mb-1">אופן הגדרת זמן</label>
@@ -193,7 +193,7 @@ const EventForm: React.FC<EventFormProps> = ({ columnId, columnEvents, event, in
 
                                         {/* Relative / Zman Inputs */}
                                         {(timeMode === 'relative' || timeMode === 'relativeToZman') && (
-                                            <div className="col-span-2 space-y-2">
+                                            <div className="col-span-1 sm:col-span-2 space-y-2">
                                                 <div className="flex items-center gap-2 text-xs">
                                                     {/* Offset Magnitude & Sign Logic */}
                                                     <Controller
@@ -299,7 +299,7 @@ const EventForm: React.FC<EventFormProps> = ({ columnId, columnEvents, event, in
                                         )}
 
                                         {/* Note */}
-                                        <div className="col-span-2">
+                                        <div className="col-span-1 sm:col-span-2">
                                             <label className="block text-xs font-medium text-stone-700 mb-1">הערה (אופציונלי)</label>
                                             <input
                                                 type="text"
@@ -313,7 +313,7 @@ const EventForm: React.FC<EventFormProps> = ({ columnId, columnEvents, event, in
                             )}
 
                             {/* Highlight Checkbox */}
-                            <div className="col-span-2 flex items-center gap-2 p-2 bg-amber-50 rounded-lg border-2 border-amber-300">
+                            <div className="col-span-1 md:col-span-2 flex items-center gap-2 p-2 bg-amber-50 rounded-lg border-2 border-amber-300">
                                 <input
                                     type="checkbox"
                                     {...register('isHighlighted')}
