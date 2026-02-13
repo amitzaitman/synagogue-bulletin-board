@@ -130,10 +130,33 @@ export const useResponsiveScaling = ({
       });
       container.appendChild(list);
 
-      // Total Height = ColumnHeader + EventsList + Bottom Padding
+      // 4. Messages Box
+      let messagesHeight = 0;
+      if (settings.boardMessages && settings.boardMessages.trim() !== '') {
+        const messages = settings.boardMessages.split('\n').filter(msg => msg.trim() !== '');
+        if (messages.length > 0) {
+          const REM = 16;
+          const py = 0.5 * REM * 2; // py-2 top and bottom
+          const border = 1;
+
+          const msgFontSize = (settings.boardMessageFontSize || 1.1) * scale * REM;
+          const msgLineHeight = msgFontSize * 1.4;
+          const msgMarginBottom = 0.25 * REM;
+
+          const contentHeight = messages.reduce((acc, _, idx) => {
+            return acc + msgLineHeight + (idx < messages.length - 1 ? msgMarginBottom : 0);
+          }, 0);
+
+          const boxMarginBottom = LAYOUT_CONSTANTS.GRID.GAP_PX * scale;
+
+          messagesHeight = py + contentHeight + border + boxMarginBottom;
+        }
+      }
+
+      // Total Height = Padding + MessagesBox + ColumnHeader + EventsList + Bottom Padding
       // Note: Header height is already subtracted from availableHeight
       const paddingY = LAYOUT_CONSTANTS.GRID.PADDING_PX * scale;
-      const totalHeight = paddingY + colHeaderHeight + container.scrollHeight + paddingY;
+      const totalHeight = paddingY + messagesHeight + colHeaderHeight + container.scrollHeight + paddingY;
 
       // console.log(`Scale: ${scale}, Header: ${headerHeight}, Footer: ${footerHeight}, ColHeader: ${colHeaderHeight}, Events: ${container.scrollHeight}, Total: ${totalHeight}, Available: ${availableHeight}`);
       return totalHeight;

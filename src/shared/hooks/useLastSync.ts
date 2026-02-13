@@ -1,10 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import { useNetworkState } from 'react-use';
 
 const LAST_SYNC_KEY = 'lastSuccessfulSync';
 
 /**
- * Hook to track the last successful sync time with Firebase
+ * Hook to track the last successful sync time with Firebase.
+ * Sync time is only updated when updateSyncTime() is called explicitly
+ * (i.e. when data actually arrives from the server), not on browser online events.
  */
 export const useLastSync = () => {
   const [lastSyncTime, setLastSyncTime] = useState<Date>(() => {
@@ -15,23 +17,16 @@ export const useLastSync = () => {
   const networkState = useNetworkState();
   const isOnline = networkState.online ?? true;
 
-  // Update sync time when coming back online
-  useEffect(() => {
-    if (isOnline) {
-      const now = new Date();
-      setLastSyncTime(now);
+  // Called by data hooks when they receive fresh data from Firestore
+  const updateSyncTime = useCallback(() => {
+    const now = new Date();
+    setLastSyncTime(now);
+    try {
       localStorage.setItem(LAST_SYNC_KEY, now.toISOString());
+    } catch (e) {
+      console.error('Failed to save sync time to localStorage', e);
     }
-  }, [isOnline]);
-
-  // Update sync time when data changes (called manually)
-  const updateSyncTime = () => {
-    if (isOnline) {
-      const now = new Date();
-      setLastSyncTime(now);
-      localStorage.setItem(LAST_SYNC_KEY, now.toISOString());
-    }
-  };
+  }, []);
 
   return {
     lastSyncTime,

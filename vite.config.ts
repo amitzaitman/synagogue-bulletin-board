@@ -1,3 +1,4 @@
+/// <reference types="vitest" />
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
@@ -33,7 +34,23 @@ export default defineConfig({
     })
   ],
   base: '/',
+  resolve: {
+    alias: {
+      '@csstools/css-calc': './src/__mocks__/css-calc.js',
+    },
+  },
   define: {
     'import.meta.env.APP_VERSION': JSON.stringify(process.env.npm_package_version),
+  },
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    setupFiles: './src/setupTests.ts',
+    pool: 'threads',
+    server: {
+      deps: {
+        inline: ['@asamuzakjp/css-color'],
+      },
+    },
   },
 })

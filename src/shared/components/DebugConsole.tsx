@@ -107,11 +107,11 @@ const DebugConsole: React.FC<DebugConsoleProps> = ({ isOpen, onClose }) => {
                                 key={type}
                                 onClick={() => toggleFilter(type)}
                                 className={`px-2 py-1 rounded border ${filters[type]
-                                        ? type === 'error' ? 'bg-red-900/50 border-red-500 text-red-200'
-                                            : type === 'warn' ? 'bg-yellow-900/50 border-yellow-500 text-yellow-200'
-                                                : type === 'info' ? 'bg-blue-900/50 border-blue-500 text-blue-200'
-                                                    : 'bg-gray-700 border-gray-500 text-gray-200'
-                                        : 'bg-transparent border-gray-700 text-gray-500'
+                                    ? type === 'error' ? 'bg-red-900/50 border-red-500 text-red-200'
+                                        : type === 'warn' ? 'bg-yellow-900/50 border-yellow-500 text-yellow-200'
+                                            : type === 'info' ? 'bg-blue-900/50 border-blue-500 text-blue-200'
+                                                : 'bg-gray-700 border-gray-500 text-gray-200'
+                                    : 'bg-transparent border-gray-700 text-gray-500'
                                     }`}
                             >
                                 {type.toUpperCase()}
@@ -138,7 +138,8 @@ const DebugConsole: React.FC<DebugConsoleProps> = ({ isOpen, onClose }) => {
                     </button>
                     <button
                         onClick={onClose}
-                        className="p-1 hover:bg-gray-700 rounded text-gray-400 hover:text-white"
+                        className="p-2 bg-red-900/30 hover:bg-red-600 rounded text-red-200 hover:text-white transition-colors ml-2"
+                        title="Close Debug Console"
                     >
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                             <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />

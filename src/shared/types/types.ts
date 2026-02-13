@@ -124,4 +124,5 @@ export interface BoardSettings {
 
   // Messages
   boardMessages?: string; // New line separated messages
+  boardMessageFontSize?: number; // Font size in rem
 }

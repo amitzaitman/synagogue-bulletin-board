@@ -112,6 +112,8 @@ const FontIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-
 const ColorIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" /></svg>;
 const BackgroundIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>;
 const LocationIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>;
+const MessageIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" /></svg>;
+
 
 interface EditPanelProps {
   settings: BoardSettings;
@@ -178,6 +180,7 @@ const EditPanel: React.FC<EditPanelProps> = React.forwardRef<{
       else if (activeSection === 'text-colors') setActiveTab('colors');
       else if (activeSection === 'background-colors') setActiveTab('background');
       else if (activeSection === 'location') setActiveTab('location');
+      else if (activeSection === 'messages') setActiveTab('messages');
     }
   }, [activeSection]);
 
@@ -189,6 +192,7 @@ const EditPanel: React.FC<EditPanelProps> = React.forwardRef<{
       else if (section === 'text-colors') setActiveTab('colors');
       else if (section === 'background-colors') setActiveTab('background');
       else if (section === 'location') setActiveTab('location');
+      else if (section === 'messages') setActiveTab('messages');
     }
   }));
 
@@ -215,6 +219,7 @@ const EditPanel: React.FC<EditPanelProps> = React.forwardRef<{
     { id: 'colors', label: 'צבעי טקסט', icon: <ColorIcon /> },
     { id: 'background', label: 'רקעים', icon: <BackgroundIcon /> },
     { id: 'location', label: 'מיקום וזמנים', icon: <LocationIcon /> },
+    { id: 'messages', label: 'הודעות', icon: <MessageIcon /> },
   ];
 
   return (
@@ -252,16 +257,6 @@ const EditPanel: React.FC<EditPanelProps> = React.forwardRef<{
               />
             </div>
             <div>
-              <label className={labelClass}>הודעות לוח (כל שורה הודעה נפרדת)</label>
-              <textarea
-                value={settings.boardMessages || ''}
-                onChange={(e) => handleSettingChange('boardMessages', e.target.value)}
-                className={`${inputClass} h-32 resize-y`}
-                placeholder="ברוכים הבאים לבית הכנסת&#10;זמני התפילות מעודכנים&#10;נא לשמור על השקט"
-                dir="rtl"
-              />
-            </div>
-            <div>
               <label className={labelClass}>ערכת נושא</label>
               <select
                 value={settings.theme}
@@ -274,7 +269,6 @@ const EditPanel: React.FC<EditPanelProps> = React.forwardRef<{
                 <option value="custom" disabled>מותאם אישית</option>
               </select>
             </div>
-
           </div>
         )}
 
@@ -429,6 +423,37 @@ const EditPanel: React.FC<EditPanelProps> = React.forwardRef<{
                 <input type="number" value={settings.shabbatCandleOffset} onChange={(e) => handleSettingChange('shabbatCandleOffset', parseInt(e.target.value, 10) || 0)} className={inputClass} />
                 <div className="mt-1 text-xs text-stone-500">ברירת מחדל: 20 דקות (כמנהג רוב הארץ)</div>
               </div>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'messages' && (
+          <div className="space-y-6 max-w-2xl mx-auto animate-fade-in">
+            <div>
+              <label className={labelClass}>הודעות לוח (כל שורה הודעה נפרדת)</label>
+              <textarea
+                value={settings.boardMessages || ''}
+                onChange={(e) => handleSettingChange('boardMessages', e.target.value)}
+                className={`${inputClass} h-64 resize-y`}
+                placeholder="ברוכים הבאים לבית הכנסת&#10;זמני התפילות מעודכנים&#10;נא לשמור על השקט"
+                dir="rtl"
+              />
+              <p className="mt-2 text-xs text-stone-500">
+                ההודעות יופיעו בראש הלוח. כל שורה חדשה תיצור הודעה נפרדת.
+              </p>
+            </div>
+
+            <div>
+              <label className={labelClass}>גודל טקסט הודעות: {settings.boardMessageFontSize || 1.1}rem</label>
+              <input
+                type="range"
+                min="0.5"
+                max="3.0"
+                step="0.1"
+                value={settings.boardMessageFontSize || 1.1}
+                onChange={(e) => handleSettingChange('boardMessageFontSize', parseFloat(e.target.value))}
+                className="w-full"
+              />
             </div>
           </div>
         )}

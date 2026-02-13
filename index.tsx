@@ -6,6 +6,8 @@ import '@fontsource/assistant';
 import '@fontsource/frank-ruhl-libre';
 
 
+import { ToastProvider } from './src/shared/context';
+
 const rootElement = document.getElementById('root');
 if (!rootElement) {
   throw new Error("Could not find root element to mount to");
@@ -14,6 +16,8 @@ if (!rootElement) {
 const root = ReactDOM.createRoot(rootElement);
 root.render(
   <React.StrictMode>
-    <App />
+    <ToastProvider>
+      <App />
+    </ToastProvider>
   </React.StrictMode>
 );

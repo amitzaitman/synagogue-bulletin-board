@@ -28,6 +28,7 @@ export const DEFAULT_BOARD_SETTINGS: BoardSettings = {
     elevation: 970, // Default to Gush Etzion
     latitude: 31.654,
     longitude: 35.132,
+    boardMessageFontSize: 1.1,
 };
 
 export interface ColumnLayoutConstants {
