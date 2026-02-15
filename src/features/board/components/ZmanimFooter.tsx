@@ -48,8 +48,8 @@ const ZmanimFooter: React.FC<ZmanimFooterProps> = ({ zmanim, settings, lastSyncT
             <div className="relative flex flex-nowrap justify-center items-center w-full gap-4">
                 {footerItems.map((item, index) => (
                     <div key={index} className="flex items-center gap-1 whitespace-nowrap">
-                        <span className="text-blue-200 text-[min(14px,0.9vw)]">{item.label}:</span>
-                        <span className="font-medium text-[min(14px,0.9vw)]">{item.time}</span>
+                        <span className="text-blue-200 text-[min(14px,0.75vw)]">{item.label}:</span>
+                        <span className="font-medium text-[min(14px,0.75vw)]">{item.time}</span>
                     </div>
                 ))}
             </div>
