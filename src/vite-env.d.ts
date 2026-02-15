@@ -13,3 +13,14 @@ interface ImportMetaEnv {
 interface ImportMeta {
     readonly env: ImportMetaEnv
 }
+
+declare module 'react-fitty' {
+    import React from 'react';
+    export interface ReactFittyProps {
+        children?: React.ReactNode;
+        minSize?: number;
+        maxSize?: number;
+        wrapText?: boolean;
+    }
+    export const ReactFitty: React.FC<ReactFittyProps>;
+}
