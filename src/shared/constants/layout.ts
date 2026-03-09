@@ -13,7 +13,7 @@ export const DEFAULT_BOARD_SETTINGS: BoardSettings = {
     theme: 'light',
     // Colors for text elements
     prayerColor: '#1e3a5f', // brand-dark
-    classColor: '#2c5282', // brand-accent
+    classColor: '#0d7b949b', // brand-accent
     freeTextColor: '#4a5568', // gray-700
     columnTitleColor: '#ffffff',
     mainTitleColor: '#ffffff',

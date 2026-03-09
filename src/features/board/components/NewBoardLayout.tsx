@@ -354,6 +354,17 @@ const NewBoardLayout: React.FC<NewBoardLayoutProps> = (props) => {
                     <Header settings={settings} zmanimData={zmanimData} />
                 </div>
 
+                {/* Fixed Metadata (Top Corners) */}
+                <div className="fixed top-0 left-0 p-1 text-[10px] opacity-20 hover:opacity-100 select-none z-50 text-stone-500 pointer-events-auto leading-none" title="Build Version">
+                    v{import.meta.env.APP_VERSION}
+                </div>
+                {props.lastSyncTime && (
+                    <div className="fixed top-0 right-0 p-1 flex items-center gap-1 opacity-30 hover:opacity-100 transition-opacity duration-300 select-none z-50 text-stone-500 pointer-events-auto leading-none" title={`סונכרן לאחרונה: ${props.lastSyncTime.toLocaleString('he-IL')}`}>
+                        <span className="w-1.5 h-1.5 rounded-full bg-green-500/50 animate-pulse"></span>
+                        <span className="text-[10px] font-mono">{props.lastSyncTime.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' })}</span>
+                    </div>
+                )}
+
                 {/* Main Grid */}
                 <main
                     className="flex-1 overflow-hidden"
@@ -467,7 +478,7 @@ const NewBoardLayout: React.FC<NewBoardLayoutProps> = (props) => {
 
                 {/* Zmanim Footer */}
                 < div ref={footerRef} >
-                    <ZmanimFooter zmanim={zmanimData} settings={settings} lastSyncTime={props.lastSyncTime} />
+                    <ZmanimFooter zmanim={zmanimData} settings={settings} />
                 </div >
 
                 {/* Controls (Bottom Left) */}

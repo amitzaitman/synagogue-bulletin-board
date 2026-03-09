@@ -5,6 +5,7 @@ import { useCollectionData } from 'react-firebase-hooks/firestore';
 import { db } from '../../../shared/firebase';
 import { useToast } from '../../../shared/context';
 import isEqual from 'fast-deep-equal';
+import { getCurrentTime } from '../../../shared/utils/timeProvider';
 
 export const defaultEvents: EventItem[] = [
   { id: '1', name: 'מנחה וקבלת שבת', timeDefinition: { mode: 'absolute', absoluteTime: '18:00' }, type: 'prayer', columnId: 'col-erev-shabbat', order: 0 },
@@ -151,5 +152,5 @@ export const useEvents = (synagogueId: string | undefined, onSync?: () => void) 
     }
   }, [synagogueId, value, showToast]);
 
-  return { events, saveEvents, lastRefresh: new Date(), loading: loading && events.length === 0 && !hasLocalCache };
+  return { events, saveEvents, lastRefresh: getCurrentTime(), loading: loading && events.length === 0 && !hasLocalCache };
 };

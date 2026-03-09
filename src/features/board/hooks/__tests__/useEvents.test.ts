@@ -2,16 +2,11 @@ import { renderHook } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { useEvents, defaultEvents } from '../useEvents';
 import * as firestoreHooks from 'react-firebase-hooks/firestore';
+import { ToastWrapper, mockShowToast } from './test-utils';
 
 // Mock Firebase
 vi.mock('../../../shared/firebase', () => ({
     db: {},
-}));
-
-// Mock Context
-const mockShowToast = vi.fn();
-vi.mock('../../../shared/context', () => ({
-    useToast: () => ({ showToast: mockShowToast }),
 }));
 
 // Mock Hooks
@@ -28,7 +23,7 @@ describe('useEvents', () => {
     });
 
     it('should return default events when no synagogueId is provided', () => {
-        const { result } = renderHook(() => useEvents(undefined));
+        const { result } = renderHook(() => useEvents(undefined), { wrapper: ToastWrapper });
         expect(result.current.events).toEqual(defaultEvents);
     });
 
@@ -37,7 +32,7 @@ describe('useEvents', () => {
         const storedEvents = [{ id: '1', name: 'Test Event', order: 0 }];
         localStorage.setItem(`syn_${synagogueId}_events`, JSON.stringify(storedEvents));
 
-        const { result } = renderHook(() => useEvents(synagogueId));
+        const { result } = renderHook(() => useEvents(synagogueId), { wrapper: ToastWrapper });
         expect(result.current.events).toEqual(storedEvents);
     });
 
@@ -48,7 +43,7 @@ describe('useEvents', () => {
         // Mock initial loading state
         (firestoreHooks.useCollectionData as any).mockReturnValue([serverEvents, false, undefined]);
 
-        const { result } = renderHook(() => useEvents(synagogueId));
+        const { result } = renderHook(() => useEvents(synagogueId), { wrapper: ToastWrapper });
 
         expect(result.current.events).toEqual(serverEvents);
         expect(localStorage.getItem(`syn_${synagogueId}_events`)).toEqual(JSON.stringify(serverEvents));
@@ -63,7 +58,7 @@ describe('useEvents', () => {
         let mockReturnValue = [initialEvents, false, undefined];
         (firestoreHooks.useCollectionData as any).mockImplementation(() => mockReturnValue);
 
-        const { result, rerender } = renderHook(() => useEvents(synagogueId));
+        const { result, rerender } = renderHook(() => useEvents(synagogueId), { wrapper: ToastWrapper });
         expect(result.current.events).toEqual(initialEvents);
 
         // 2. Simulate server update
@@ -83,7 +78,7 @@ describe('useEvents', () => {
         const firestoreError = new Error('Failed to get document because the client is offline.');
         (firestoreHooks.useCollectionData as any).mockReturnValue([undefined, false, firestoreError]);
 
-        const { result } = renderHook(() => useEvents(synagogueId));
+        const { result } = renderHook(() => useEvents(synagogueId), { wrapper: ToastWrapper });
 
         expect(result.current.events).toEqual(cachedEvents);
         expect(result.current.loading).toBe(false);
@@ -97,7 +92,7 @@ describe('useEvents', () => {
         // Firestore is still loading
         (firestoreHooks.useCollectionData as any).mockReturnValue([undefined, true, undefined]);
 
-        const { result } = renderHook(() => useEvents(synagogueId));
+        const { result } = renderHook(() => useEvents(synagogueId), { wrapper: ToastWrapper });
 
         expect(result.current.events).toEqual(cachedEvents);
         expect(result.current.loading).toBe(false);

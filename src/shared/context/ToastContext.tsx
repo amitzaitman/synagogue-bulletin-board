@@ -14,7 +14,7 @@ interface ToastContextType {
     removeToast: (id: string) => void;
 }
 
-const ToastContext = createContext<ToastContextType | undefined>(undefined);
+export const ToastContext = createContext<ToastContextType | undefined>(undefined);
 
 export const useToast = () => {
     const context = useContext(ToastContext);

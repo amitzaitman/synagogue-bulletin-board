@@ -47,7 +47,7 @@ const Column: React.FC<ColumnProps> = ({ column, events, settings, calculatedTim
         >
             {/* Column Header */}
             <div
-                className={`bg-brand-accent text-white text-center relative group cursor-grab active:cursor-grabbing`}
+                className={`bg-brand-dark text-white text-center relative group cursor-grab active:cursor-grabbing`}
                 style={{ padding: `${LAYOUT_CONSTANTS.COLUMN.HEADER_PADDING_Y_PX * contentScale}px ${LAYOUT_CONSTANTS.COLUMN.HEADER_PADDING_X_PX * contentScale}px` }} // py-3 px-4 scaled
                 {...attributes}
                 {...listeners}

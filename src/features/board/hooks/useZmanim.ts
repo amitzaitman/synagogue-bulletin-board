@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Zmanim, HebrewCalendar, HDate, flags, Event } from '@hebcal/core';
 import { BoardSettings, ZmanimData } from '../../../shared/types/types';
 import { createHebcalLocation } from '../../../shared/utils/hebcal';
+import { getCurrentTime } from '../../../shared/utils/timeProvider';
 
 // Helper function to remove Hebrew vowel points and cantillation marks
 const removeNikud = (text: string): string => text.replace(/[\u0591-\u05BD\u05BF-\u05C7]/g, '');
@@ -19,7 +20,7 @@ export const useZmanim = (settings: BoardSettings) => {
             try {
                 const location = createHebcalLocation(lat, lon, elevation);
 
-                const now = new Date();
+                const now = getCurrentTime();
                 const today = now.getDay(); // Sunday=0, ..., Saturday=6
 
                 // --- Shabbat-specific calculations ---

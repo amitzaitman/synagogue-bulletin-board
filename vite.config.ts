@@ -2,11 +2,16 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
+import legacy from '@vitejs/plugin-legacy'
 
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
     react(),
+    legacy({
+      targets: ['defaults', 'not IE 11', 'chrome >= 49', 'edge >= 14', 'firefox >= 52', 'safari >= 10', 'ios >= 10'],
+      additionalLegacyPolyfills: ['regenerator-runtime/runtime']
+    }),
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
@@ -37,6 +42,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@csstools/css-calc': './src/__mocks__/css-calc.js',
+      '@asamuzakjp/css-color': './src/__mocks__/css-calc.js',
     },
   },
   define: {
@@ -44,12 +50,10 @@ export default defineConfig({
   },
   test: {
     globals: true,
-    environment: 'jsdom',
+    environment: 'happy-dom',
     setupFiles: './src/setupTests.ts',
-    server: {
-      deps: {
-        inline: ['@asamuzakjp/css-color'],
-      },
-    },
+  },
+  esbuild: {
+    jsx: 'automatic',
   },
 })

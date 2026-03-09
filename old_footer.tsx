@@ -17,7 +17,7 @@ const ZmanimFooter: React.FC<ZmanimFooterProps> = ({ zmanim, settings }) => {
 
         const items = [
             { label: 'עלות השחר', time: formatTime(zmanim.alotHaShachar) },
-            { label: 'הנץ החמה', time: formatTime(zmanim.sunrise) },
+            { label: 'נץ החמה', time: formatTime(zmanim.sunrise) },
             { label: 'ס"ז ק"ש (מג"א)', time: formatTime(zmanim.sofZmanShmaMGA) },
             { label: 'ס"ז ק"ש (גר"א)', time: formatTime(zmanim.sofZmanShmaGRA) },
             { label: 'ס"ז תפילה (מג"א)', time: formatTime(zmanim.sofZmanTfillaMGA) },
@@ -33,18 +33,23 @@ const ZmanimFooter: React.FC<ZmanimFooterProps> = ({ zmanim, settings }) => {
         return items.filter(item => item.time !== '--:--');
     }, [zmanim]);
 
+    if (!zmanim || footerItems.length === 0) return null;
+
     return (
         <div
-            className="bg-brand-dark text-white py-1 px-2 border-t border-white/10 shadow-lg z-10 w-full"
+            className="bg-brand-dark text-white py-1 px-2 border-t border-white/10 shadow-lg z-10"
             style={{ backgroundColor: settings.zmanimBackgroundColor }}
         >
             <div className="flex flex-nowrap justify-between items-center w-full">
                 {footerItems.map((item, index) => (
                     <div key={index} className="flex items-center gap-1 whitespace-nowrap">
-                        <span className="text-blue-200 text-[min(14px,1vw)]">{item.label}:</span>
-                        <span className="font-medium text-[min(14px,1vw)]">{item.time}</span>
+                        <span className="text-blue-200 text-[min(14px,0.9vw)]">{item.label}:</span>
+                        <span className="font-medium text-[min(14px,0.9vw)]">{item.time}</span>
                     </div>
                 ))}
+                <div className="text-[10px] opacity-30 mr-auto pl-1 select-none" title="Build Version">
+                    v{import.meta.env.APP_VERSION}
+                </div>
             </div>
         </div>
     );

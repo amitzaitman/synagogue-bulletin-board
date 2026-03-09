@@ -1,7 +1,7 @@
 {
   "name": "synagogue-bulletin-board",
   "private": true,
-  "version": "0.0.8",
+  "version": "0.0.11",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -37,14 +37,17 @@
     "@testing-library/react": "^16.3.2",
     "@types/react": "^19.0.0-rc.0",
     "@types/react-dom": "^19.0.0-rc.0",
+    "@vitejs/plugin-legacy": "^6.0.0",
     "@vitejs/plugin-react": "^4.3.1",
     "autoprefixer": "^10.4.22",
+    "happy-dom": "^20.8.3",
     "jsdom": "^27.0.1",
     "postcss": "^8.5.6",
     "tailwindcss": "^4.1.17",
+    "terser": "^5.31.0",
     "typescript": "^5.4.5",
     "vite": "^6.4.1",
     "vite-plugin-pwa": "^1.1.0",
-    "vitest": "^4.0.18"
+    "vitest": "^3.2.4"
   }
 }

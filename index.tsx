@@ -4,8 +4,6 @@ import App from './src/App';
 import './src/index.css';
 import '@fontsource/assistant';
 import '@fontsource/frank-ruhl-libre';
-
-
 import { ToastProvider } from './src/shared/context';
 
 const rootElement = document.getElementById('root');

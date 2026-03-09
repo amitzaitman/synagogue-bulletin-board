@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { BoardSettings, ZmanimData } from '../../../shared/types/types';
+import { getCurrentTime } from '../../../shared/utils/timeProvider';
 
 interface HeaderProps {
     settings: BoardSettings;
@@ -7,10 +8,10 @@ interface HeaderProps {
 }
 
 const Header: React.FC<HeaderProps> = ({ settings, zmanimData }) => {
-    const [time, setTime] = useState(new Date());
+    const [time, setTime] = useState(getCurrentTime());
 
     useEffect(() => {
-        const timer = setInterval(() => setTime(new Date()), 1000);
+        const timer = setInterval(() => setTime(getCurrentTime()), 1000);
         return () => clearInterval(timer);
     }, []);
 

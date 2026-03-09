@@ -2,6 +2,7 @@ import { EventItem, Column, ZmanimData, BoardSettings, DateSpecificZmanim } from
 import { Zmanim } from '@hebcal/core';
 import { createHebcalLocation } from './hebcal';
 import { addMinutes, format, set } from 'date-fns';
+import { getCurrentTime } from './timeProvider';
 
 export const roundTime = (date: Date, rounding: { direction: 'up' | 'down' | 'nearest'; increment: number; }): Date => {
     const { direction = 'nearest', increment } = rounding || { direction: 'nearest', increment: 1 };
@@ -76,7 +77,7 @@ export const calculateAllEventTimes = (
             const timeStr = calculatedTimes.get(eventId);
             if (!timeStr) return null;
             const [hours, minutes] = timeStr.split(':').map(Number);
-            return set(new Date(), { hours, minutes, seconds: 0, milliseconds: 0 });
+            return set(getCurrentTime(), { hours, minutes, seconds: 0, milliseconds: 0 });
         }
         if (visited.has(eventId)) return null; // Circular dependency
 
@@ -101,7 +102,7 @@ export const calculateAllEventTimes = (
             const { absoluteTime } = event.timeDefinition;
             if (absoluteTime) {
                 const [hours, minutes] = absoluteTime.split(':').map(Number);
-                resultDate = set(new Date(), { hours, minutes, seconds: 0, milliseconds: 0 });
+                resultDate = set(getCurrentTime(), { hours, minutes, seconds: 0, milliseconds: 0 });
             }
         } else if (mode === 'relative') {
             const { relativeEventId, offsetMinutes } = event.timeDefinition;

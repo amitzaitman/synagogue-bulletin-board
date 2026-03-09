@@ -35,7 +35,6 @@ const EventItem: React.FC<EventItemProps> = ({ event, time, settings, isStriped,
             style={{
                 fontSize: calculatedFontSize,
                 padding: `${(settings.eventPaddingY ?? LAYOUT_CONSTANTS.EVENT.PADDING_Y_PX) * scale}px ${(settings.eventPaddingX ?? LAYOUT_CONSTANTS.EVENT.PADDING_X_PX) * scale}px`,
-                backgroundColor: (event.isHighlighted && settings.highlightColor) ? settings.highlightColor : undefined
             }}
             onClick={(e) => {
                 if (onClick) {

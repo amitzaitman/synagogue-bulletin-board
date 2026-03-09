@@ -3,6 +3,7 @@ import { HashRouter as Router, Routes, Route, useParams, useNavigate } from 'rea
 import NewBoardLayout from './features/board/components/NewBoardLayout';
 import OnlineStatus from './shared/components/OnlineStatus';
 import DebugConsole from './shared/components/DebugConsole';
+import ClockErrorScreen from './shared/components/ClockErrorScreen';
 import { useEvents } from './features/board/hooks/useEvents';
 import { useColumns } from './features/board/hooks/useColumns';
 import { useBoardSettings } from './features/board/hooks/useBoardSettings';
@@ -11,6 +12,7 @@ import { useLastSync } from './shared/hooks/useLastSync';
 import { useFirestoreNetwork } from './shared/hooks/useFirestoreNetwork';
 import LandingPage from './features/landing/components/LandingPage';
 import { saveSelectedSynagogue } from './shared/utils/storage';
+import { getCurrentTime } from './shared/utils/timeProvider';
 
 const BoardPage: React.FC<{ onOpenDebug: () => void }> = ({ onOpenDebug }) => {
   const { slugOrId } = useParams<{ slugOrId: string }>();
@@ -31,6 +33,27 @@ const BoardPage: React.FC<{ onOpenDebug: () => void }> = ({ onOpenDebug }) => {
   const { zmanimData, loading: zmanimLoading, error: zmanimError } = useZmanim(settings);
 
   const isLoading = slugOrId && (settingsLoading || eventsLoading || columnsLoading);
+
+  const [isClockError, setIsClockError] = useState(false);
+
+  useEffect(() => {
+    const checkClock = () => {
+      // 60,000 ms = 1 minute threshold to avoid race condition discrepancies
+      if (lastSyncTime && getCurrentTime().getTime() < lastSyncTime.getTime() - 60000) {
+        setIsClockError(true);
+      } else {
+        setIsClockError(false);
+      }
+    };
+
+    checkClock();
+    const interval = setInterval(checkClock, 10000);
+    return () => clearInterval(interval);
+  }, [lastSyncTime]);
+
+  if (isClockError) {
+    return <ClockErrorScreen lastSyncTime={lastSyncTime} onClockSet={() => setIsClockError(false)} />;
+  }
 
   if (isLoading) {
     return (

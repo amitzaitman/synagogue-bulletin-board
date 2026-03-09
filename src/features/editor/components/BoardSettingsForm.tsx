@@ -127,7 +127,7 @@ interface EditPanelProps {
 const themes = {
   light: {
     prayerColor: '#1e3a5f', // brand-dark
-    classColor: '#2c5282', // brand-accent
+    classColor: '#0d9488', // brand-accent
     freeTextColor: '#4a5568', // gray-700
     columnTitleColor: '#ffffff',
     mainTitleColor: '#ffffff',
@@ -344,17 +344,6 @@ const EditPanel: React.FC<EditPanelProps> = React.forwardRef<{
               <div>
                 <label className={labelClass}>צבע כותרת ראשית</label>
                 <input type="color" value={settings.mainTitleColor} onChange={(e) => handleSettingChange('mainTitleColor', e.target.value)} className="w-full h-10 rounded cursor-pointer" />
-              </div>
-              <label className={labelClass}>צבע הדגשה</label>
-              <div className="flex gap-2">
-                <input type="color" value={settings.highlightColor || '#ffffff'} onChange={(e) => handleSettingChange('highlightColor', e.target.value)} className="w-full h-10 rounded cursor-pointer" />
-                <button
-                  onClick={() => handleSettingChange('highlightColor', '')}
-                  className="px-3 py-2 text-sm text-red-600 bg-red-50 hover:bg-red-100 rounded border border-red-200"
-                  title="ללא צבע הדגשה"
-                >
-                  ללא
-                </button>
               </div>
             </div>
           </div>
