@@ -1,4 +1,5 @@
-import React, { useMemo, useRef, useState, useEffect } from 'react';
+import React, { useMemo, useRef, useState, useEffect, useCallback } from 'react';
+import html2canvas from 'html2canvas';
 import { EventItem, BoardSettings, Column as IColumn, ZmanimData } from '../../../shared/types/types';
 import { calculateAllEventTimes } from '../../../shared/utils/timeCalculations';
 import Header from './Header';
@@ -344,7 +345,93 @@ const NewBoardLayout: React.FC<NewBoardLayoutProps> = (props) => {
         setEditingEventState({ isOpen: false, columnId: '' });
     };
 
+    // Screenshot state
+    const [isCapturing, setIsCapturing] = useState(false);
+    const [screenshotBlob, setScreenshotBlob] = useState<Blob | null>(null);
+    const [showShareDialog, setShowShareDialog] = useState(false);
 
+    const handleScreenshot = useCallback(async () => {
+        if (!containerRef.current || isCapturing) return;
+        setIsCapturing(true);
+
+        try {
+            // Hide the clock element during capture
+            const clockEl = containerRef.current.querySelector('[data-board-clock]') as HTMLElement | null;
+            if (clockEl) clockEl.style.visibility = 'hidden';
+
+            // Hide controls during capture
+            const controlsEl = containerRef.current.querySelector('[data-board-controls]') as HTMLElement | null;
+            if (controlsEl) controlsEl.style.display = 'none';
+
+            // Hide version and sync indicators
+            const fixedEls = document.querySelectorAll('.fixed.top-0') as NodeListOf<HTMLElement>;
+            fixedEls.forEach(el => el.style.visibility = 'hidden');
+
+            const canvas = await html2canvas(containerRef.current, {
+                useCORS: true,
+                scale: 2,
+                backgroundColor: settings.mainBackgroundColor,
+                logging: false,
+            });
+
+            // Restore hidden elements
+            if (clockEl) clockEl.style.visibility = '';
+            if (controlsEl) controlsEl.style.display = '';
+            fixedEls.forEach(el => el.style.visibility = '');
+
+            canvas.toBlob((blob) => {
+                if (blob) {
+                    setScreenshotBlob(blob);
+                    setShowShareDialog(true);
+                }
+            }, 'image/png');
+        } catch (err) {
+            console.error('Screenshot failed:', err);
+        } finally {
+            setIsCapturing(false);
+        }
+    }, [isCapturing, settings.mainBackgroundColor]);
+
+    const handleShare = useCallback(async () => {
+        if (!screenshotBlob) return;
+
+        const file = new File([screenshotBlob], `${settings.boardTitle || 'לוח-מודעות'}.png`, { type: 'image/png' });
+
+        if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+            try {
+                await navigator.share({
+                    title: settings.boardTitle || 'לוח בית כנסת',
+                    files: [file],
+                });
+                setShowShareDialog(false);
+                setScreenshotBlob(null);
+                return;
+            } catch (err) {
+                // User cancelled or share failed - fall through to download
+                if ((err as Error).name === 'AbortError') {
+                    return; // User cancelled, keep dialog open
+                }
+            }
+        }
+
+        // Fallback: download
+        handleDownload();
+    }, [screenshotBlob, settings.boardTitle]);
+
+    const handleDownload = useCallback(() => {
+        if (!screenshotBlob) return;
+
+        const url = URL.createObjectURL(screenshotBlob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${settings.boardTitle || 'לוח-מודעות'}.png`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        setShowShareDialog(false);
+        setScreenshotBlob(null);
+    }, [screenshotBlob, settings.boardTitle]);
 
     return (
         <LandscapeEnforcer allowPortrait={props.isEditMode || editingEventState.isOpen || editingColumnSettings.isOpen}>
@@ -483,6 +570,7 @@ const NewBoardLayout: React.FC<NewBoardLayoutProps> = (props) => {
 
                 {/* Controls (Bottom Left) */}
                 < div
+                    data-board-controls
                     className={`fixed bottom-4 left-4 flex gap-2 transition-opacity duration-300 ${props.isEditMode ? 'opacity-0 pointer-events-none' :
                         controlsVisible ? 'opacity-100' : 'opacity-0'
                         }`}
@@ -515,6 +603,24 @@ const NewBoardLayout: React.FC<NewBoardLayoutProps> = (props) => {
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                         </svg>
+                    </button>
+                    <button
+                        onClick={handleScreenshot}
+                        disabled={isCapturing}
+                        className="bg-gray-800 text-white p-3 rounded-full shadow-lg hover:bg-gray-700 disabled:opacity-50"
+                        title="צילום מסך לשיתוף"
+                    >
+                        {isCapturing ? (
+                            <svg className="animate-spin h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                        ) : (
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                        )}
                     </button>
                     <button
                         onClick={props.onOpenDebug}
@@ -597,6 +703,54 @@ const NewBoardLayout: React.FC<NewBoardLayoutProps> = (props) => {
                         </div>
                     )
                 }
+
+                {/* Screenshot Share Dialog */}
+                {showShareDialog && screenshotBlob && (
+                    <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+                        <div className="bg-white rounded-xl shadow-2xl flex flex-col w-full max-w-lg overflow-hidden animate-fade-in" dir="rtl">
+                            <div className="p-4 bg-gray-50 border-b flex justify-between items-center">
+                                <h2 className="text-xl font-bold text-gray-800">שיתוף צילום מסך</h2>
+                                <button
+                                    onClick={() => { setShowShareDialog(false); setScreenshotBlob(null); }}
+                                    className="text-gray-400 hover:text-gray-600 transition-colors"
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
+                            </div>
+                            <div className="p-4">
+                                <div className="mb-4 rounded-lg overflow-hidden border border-gray-200 shadow-sm">
+                                    <img
+                                        src={URL.createObjectURL(screenshotBlob)}
+                                        alt="צילום מסך של הלוח"
+                                        className="w-full h-auto"
+                                    />
+                                </div>
+                                <div className="flex gap-3 justify-center">
+                                    <button
+                                        onClick={handleShare}
+                                        className="flex items-center gap-2 bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors font-medium text-lg"
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                                        </svg>
+                                        שתף
+                                    </button>
+                                    <button
+                                        onClick={handleDownload}
+                                        className="flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium text-lg"
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                        </svg>
+                                        הורד תמונה
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div >
         </LandscapeEnforcer>
     );
