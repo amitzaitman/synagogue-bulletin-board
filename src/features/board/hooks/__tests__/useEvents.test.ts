@@ -5,7 +5,7 @@ import * as firestoreHooks from 'react-firebase-hooks/firestore';
 import { ToastWrapper, mockShowToast } from './test-utils';
 
 // Mock Firebase
-vi.mock('../../../shared/firebase', () => ({
+vi.mock('../../../../shared/firebase', () => ({
     db: {},
 }));
 
