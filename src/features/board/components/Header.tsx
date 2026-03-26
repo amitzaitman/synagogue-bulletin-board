@@ -25,7 +25,7 @@ const Header: React.FC<HeaderProps> = ({ settings, zmanimData }) => {
             style={{ padding: '1.5vw' }}
         >
             {/* Clock Section (Left in RTL) */}
-            <div className="flex flex-col items-start w-1/6">
+            <div className="flex flex-col items-start w-1/6" data-board-clock>
                 <div
                     className="font-mono tracking-wider bg-white/10 rounded-lg"
                     style={{
