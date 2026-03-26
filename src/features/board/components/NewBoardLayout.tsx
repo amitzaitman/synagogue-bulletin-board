@@ -1,5 +1,5 @@
 import React, { useMemo, useRef, useState, useEffect, useCallback } from 'react';
-import html2canvas from 'html2canvas';
+import { toPng } from 'html-to-image';
 import { EventItem, BoardSettings, Column as IColumn, ZmanimData } from '../../../shared/types/types';
 import { calculateAllEventTimes } from '../../../shared/utils/timeCalculations';
 import Header from './Header';
@@ -354,40 +354,33 @@ const NewBoardLayout: React.FC<NewBoardLayoutProps> = (props) => {
         if (!containerRef.current || isCapturing) return;
         setIsCapturing(true);
 
+        // Elements to hide during capture
+        const clockEl = containerRef.current.querySelector('[data-board-clock]') as HTMLElement | null;
+        const controlsEl = containerRef.current.querySelector('[data-board-controls]') as HTMLElement | null;
+        const fixedEls = document.querySelectorAll('.fixed.top-0') as NodeListOf<HTMLElement>;
+
         try {
-            // Hide the clock element during capture
-            const clockEl = containerRef.current.querySelector('[data-board-clock]') as HTMLElement | null;
+            // Hide the clock, controls, and version/sync indicators during capture
             if (clockEl) clockEl.style.visibility = 'hidden';
-
-            // Hide controls during capture
-            const controlsEl = containerRef.current.querySelector('[data-board-controls]') as HTMLElement | null;
             if (controlsEl) controlsEl.style.display = 'none';
-
-            // Hide version and sync indicators
-            const fixedEls = document.querySelectorAll('.fixed.top-0') as NodeListOf<HTMLElement>;
             fixedEls.forEach(el => el.style.visibility = 'hidden');
 
-            const canvas = await html2canvas(containerRef.current, {
-                useCORS: true,
-                scale: 2,
+            const dataUrl = await toPng(containerRef.current, {
+                pixelRatio: 2,
                 backgroundColor: settings.mainBackgroundColor,
-                logging: false,
             });
 
-            // Restore hidden elements
-            if (clockEl) clockEl.style.visibility = '';
-            if (controlsEl) controlsEl.style.display = '';
-            fixedEls.forEach(el => el.style.visibility = '');
-
-            canvas.toBlob((blob) => {
-                if (blob) {
-                    setScreenshotBlob(blob);
-                    setShowShareDialog(true);
-                }
-            }, 'image/png');
+            const response = await fetch(dataUrl);
+            const blob = await response.blob();
+            setScreenshotBlob(blob);
+            setShowShareDialog(true);
         } catch (err) {
             console.error('Screenshot failed:', err);
         } finally {
+            // Always restore hidden elements
+            if (clockEl) clockEl.style.visibility = '';
+            if (controlsEl) controlsEl.style.display = '';
+            fixedEls.forEach(el => el.style.visibility = '');
             setIsCapturing(false);
         }
     }, [isCapturing, settings.mainBackgroundColor]);
