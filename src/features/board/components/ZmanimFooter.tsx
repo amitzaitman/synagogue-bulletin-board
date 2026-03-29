@@ -38,7 +38,10 @@ const ZmanimFooter: React.FC<ZmanimFooterProps> = ({ zmanim, settings }) => {
             className="bg-brand-dark text-white py-1 px-2 border-t border-white/10 shadow-lg z-10 w-full"
             style={{ backgroundColor: settings.zmanimBackgroundColor }}
         >
-            <div className="flex flex-nowrap justify-between items-center w-full">
+            <div
+                className="flex flex-wrap justify-center items-center gap-x-4 gap-y-1 w-full"
+                data-board-footer-items
+            >
                 {footerItems.map((item, index) => (
                     <div key={index} className="flex items-center gap-1 whitespace-nowrap">
                         <span className="text-blue-200 text-[min(14px,1vw)]">{item.label}:</span>

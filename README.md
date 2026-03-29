@@ -30,6 +30,8 @@ A web application for managing and displaying synagogue bulletin boards with aut
 - **Flexible Time Definitions**: Absolute times, relative to other events, or relative to zmanim
 - **Offline Mode**: Works offline with local storage fallback and trusted-clock recovery for TVs that boot without internet
 - **Resilient Connectivity Handling**: Distinguishes cached Firestore data from real server syncs and handles offline startup/reconnect states explicitly
+- **TV-Safe Auto Fit**: Board columns shrink to fit the available screen instead of relying on internal scrolling
+- **No Hidden Text**: Long titles, events, notes, and messages wrap instead of being truncated
 - **Responsive Design**: Works on desktop, tablet, and mobile devices
 - **Friendly URLs**: Access synagogues via memorable slugs (e.g., `/kehilat-bnei-torah`)
 - **Network Status**: Always-visible online/offline indicator

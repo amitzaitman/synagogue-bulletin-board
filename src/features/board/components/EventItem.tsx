@@ -43,9 +43,9 @@ const EventItem: React.FC<EventItemProps> = ({ event, time, settings, isStriped,
                 }
             }}
         >
-            <div className="flex justify-between items-center w-full">
+            <div className="flex justify-between items-start gap-3 w-full">
                 <span
-                    className={`truncate flex-1 ml-4 ${event.isHighlighted ? 'font-bold' : 'font-medium'} ${event.type === 'freeText' ? 'text-center w-full' : ''}`}
+                    className={`min-w-0 flex-1 whitespace-normal break-words leading-tight ${event.isHighlighted ? 'font-bold' : 'font-medium'} ${event.type === 'freeText' ? 'text-center w-full' : 'ml-4'}`}
                     style={{ color: getEventColor() }}
                     title={event.name}
                 >
@@ -53,10 +53,10 @@ const EventItem: React.FC<EventItemProps> = ({ event, time, settings, isStriped,
                 </span>
                 {time && (
                     <span
-                        className={`whitespace-nowrap text-left font-mono tracking-wider ${event.isHighlighted ? 'font-bold text-brand-dark' : 'font-medium text-brand-dark'}`}
+                        className={`shrink-0 whitespace-nowrap text-left font-mono tracking-wider ${event.isHighlighted ? 'font-bold text-brand-dark' : 'font-medium text-brand-dark'}`}
                         dir="ltr"
                         style={{
-                            minWidth: `${LAYOUT_CONSTANTS.EVENT.TIME_MIN_WIDTH_PX}px`,
+                            minWidth: `${LAYOUT_CONSTANTS.EVENT.TIME_MIN_WIDTH_PX * scale}px`,
                             color: getEventColor()
                         }}
                     >
@@ -66,7 +66,7 @@ const EventItem: React.FC<EventItemProps> = ({ event, time, settings, isStriped,
             </div>
             {event.note && (
                 <div
-                    className="text-center w-full mt-1 opacity-80 truncate"
+                    className="text-center w-full mt-1 opacity-80 whitespace-normal break-words leading-tight"
                     style={{ fontSize: '0.85em', color: getEventColor() }}
                 >
                     {event.note}

@@ -230,6 +230,7 @@ const NewBoardLayout: React.FC<NewBoardLayoutProps> = (props) => {
 
     // Calculate scaling
     const { contentScale } = useScaling({
+        containerRef,
         containerWidth: dimensions.width,
         containerHeight: dimensions.height,
         headerHeight,

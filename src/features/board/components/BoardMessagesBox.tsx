@@ -28,11 +28,12 @@ const BoardMessagesBox: React.FC<BoardMessagesBoxProps> = ({ settings, scale = 1
             }}
             onClick={onClick}
             title={onClick ? "לחץ לעריכת הודעות" : undefined}
+            data-board-messages
         >
             {messages.map((message, index) => (
                 <div
                     key={index}
-                    className="font-medium text-stone-800"
+                    className="font-medium text-stone-800 whitespace-normal break-words leading-tight"
                     style={{
                         fontSize: `${(settings.boardMessageFontSize || 1.1) * scale}rem`,
                         lineHeight: '1.4',

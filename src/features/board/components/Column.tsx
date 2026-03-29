@@ -68,7 +68,7 @@ const Column: React.FC<ColumnProps> = ({ column, events, settings, calculatedTim
                 </button>
 
                 <h2
-                    className="truncate select-none"
+                    className="select-none whitespace-normal break-words leading-tight"
                     style={{
                         fontSize: `${settings.columnTitleSize * LAYOUT_CONSTANTS.COLUMN.TITLE_SCALE_FACTOR * contentScale}px`,
                         color: settings.columnTitleColor
@@ -78,7 +78,7 @@ const Column: React.FC<ColumnProps> = ({ column, events, settings, calculatedTim
                 </h2>
                 {column.specificDate && (
                     <div
-                        className="opacity-90 mt-1"
+                        className="opacity-90 mt-1 whitespace-normal break-words leading-tight"
                         style={{ fontSize: `${LAYOUT_CONSTANTS.COLUMN.DATE_FONT_SIZE_REM * contentScale}rem` }} // text-sm scaled
                     >
                         {column.specificDate}
@@ -87,16 +87,10 @@ const Column: React.FC<ColumnProps> = ({ column, events, settings, calculatedTim
             </div>
 
             {/* Events List */}
-            <div className="flex-1 overflow-y-auto scrollbar-hide">
-                <style>{`
-                    .scrollbar-hide::-webkit-scrollbar {
-                        display: none;
-                    }
-                    .scrollbar-hide {
-                        -ms-overflow-style: none;
-                        scrollbar-width: none;
-                    }
-                `}</style>
+            <div
+                className="flex-1 min-h-0 overflow-hidden"
+                data-board-column-events
+            >
                 <SortableContext items={events.map(e => e.id)} strategy={verticalListSortingStrategy}>
                     {events.length > 0 ? (
                         <div className="flex flex-col">
