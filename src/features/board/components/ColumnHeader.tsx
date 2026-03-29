@@ -124,9 +124,6 @@ const ColumnHeader: React.FC<ColumnHeaderProps> = ({
                         <div className="flex items-center gap-2">
                             <span className="text-xs text-stone-500">
                                 {getColumnTypeLabel(column.columnType)}
-                                {column.columnType === 'moed' && column.specificDate && (
-                                    <span className="mr-1">({new Date(column.specificDate).toLocaleDateString('he-IL')})</span>
-                                )}
                             </span>
                             <button onClick={(e) => { e.stopPropagation(); onEditColumnSettings?.(); }} className="text-stone-400 hover:text-stone-800 p-0.5" title="ערוך עמודה">
                                 <PencilIcon />
