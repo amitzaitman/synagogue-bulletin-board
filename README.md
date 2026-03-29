@@ -23,12 +23,13 @@ A web application for managing and displaying synagogue bulletin boards with aut
 - **Public Viewing**: All synagogue boards are publicly accessible via friendly URLs
 - **Password-Based Editing**: Simple password authentication for synagogue managers
 - **Admin Management**: Single admin account to manage all synagogues (authentication ONLY for `/manage` screen)
-- **Automatic Zmanim**: Real-time calculation of Jewish prayer times using KosherZmanim library
+- **Automatic Zmanim**: Real-time calculation of Jewish prayer times using @hebcal/core
 - **Hebrew Calendar**: Display Hebrew date, parsha, and holidays
 - **Customizable Layout**: Add, edit, and reorder columns and events
 - **Drag & Drop**: Reorder events with drag-and-drop (manual mode)
 - **Flexible Time Definitions**: Absolute times, relative to other events, or relative to zmanim
-- **Offline Mode**: Works offline with local storage fallback
+- **Offline Mode**: Works offline with local storage fallback and trusted-clock recovery for TVs that boot without internet
+- **Resilient Connectivity Handling**: Distinguishes cached Firestore data from real server syncs and handles offline startup/reconnect states explicitly
 - **Responsive Design**: Works on desktop, tablet, and mobile devices
 - **Friendly URLs**: Access synagogues via memorable slugs (e.g., `/kehilat-bnei-torah`)
 - **Network Status**: Always-visible online/offline indicator
@@ -234,10 +235,12 @@ src/
 │   ├── LandingPage.tsx        # Home page with synagogue list
 │   ├── SuperUserLogin.tsx     # Admin login
 │   ├── ManageSynagogues.tsx   # Admin management screen
-│   ├── Clock.tsx              # Real-time clock display
+│   ├── Header.tsx             # Board header with real-time clock and Hebrew date
 │   ├── HebrewDate.tsx         # Hebrew date component
 │   ├── ZmanimInfo.tsx         # Prayer times panel
 │   ├── OnlineStatus.tsx       # Network status indicator
+│   ├── ClockErrorScreen.tsx   # Blocks the board when the device clock is invalid/untrusted
+│   ├── OfflineStartupScreen.tsx # Explains offline startup when no cached board data exists yet
 │   └── dialogs/
 │       ├── PasswordDialog.tsx      # Password entry
 │       └── AddColumnDialog.tsx     # Create new column
@@ -251,6 +254,7 @@ src/
 │   └── useAutoRefresh.ts      # Auto-refresh at midnight
 ├── utils/
 │   ├── timeCalculations.ts    # Event time calculations
+│   ├── timeProvider.ts        # Trusted/manual clock provider for online + offline use
 │   ├── offlineStorage.ts      # LocalStorage cache layer
 │   └── dataBackup.ts          # Backup/recovery system
 ├── firebase.ts                # Firebase initialization
@@ -698,6 +702,19 @@ When making ANY changes to this codebase, you MUST update this README. This incl
 
 ## Version History
 
+### v2.2 (2026-03-29) - Online/Offline State Hardening
+- Firestore hooks now distinguish cached snapshots from real server syncs
+- Last successful sync is only refreshed from non-cache server data
+- Added an explicit offline startup screen when a board opens without internet and without any saved local data
+- Restored persistent offline status UI and clearer live/offline sync indicators on the board
+- Firestore network state now re-syncs on startup, reconnect, focus, and visibility changes
+
+### v2.1 (2026-03-29) - Offline Clock Recovery
+- Added trusted clock persistence after successful online syncs
+- App now auto-recovers from TVs that restart with an older device clock
+- Added a stricter invalid-clock gate for first offline launches with obviously wrong dates
+- Updated the clock error screen to explain the one-time online sync requirement
+
 ### v2.0 (2025-10-30) - Authentication Simplification
 - Admin authentication isolated to `/manage` screen only
 - Removed `user` annotations from board editing flow
@@ -724,8 +741,8 @@ When making ANY changes to this codebase, you MUST update this README. This incl
 
 ---
 
-**Last Updated:** 2025-10-30
-**Version:** 2.0
+**Last Updated:** 2026-03-29
+**Version:** 2.2
 **Documentation Status:** ✅ Current
 
 ---

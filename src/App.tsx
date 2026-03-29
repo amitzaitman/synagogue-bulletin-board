@@ -4,6 +4,7 @@ import NewBoardLayout from './features/board/components/NewBoardLayout';
 import OnlineStatus from './shared/components/OnlineStatus';
 import DebugConsole from './shared/components/DebugConsole';
 import ClockErrorScreen from './shared/components/ClockErrorScreen';
+import OfflineStartupScreen from './shared/components/OfflineStartupScreen';
 import { useEvents } from './features/board/hooks/useEvents';
 import { useColumns } from './features/board/hooks/useColumns';
 import { useBoardSettings } from './features/board/hooks/useBoardSettings';
@@ -12,7 +13,7 @@ import { useLastSync } from './shared/hooks/useLastSync';
 import { useFirestoreNetwork } from './shared/hooks/useFirestoreNetwork';
 import LandingPage from './features/landing/components/LandingPage';
 import { saveSelectedSynagogue } from './shared/utils/storage';
-import { getCurrentTime } from './shared/utils/timeProvider';
+import { getCurrentTime, isCurrentClockPlausible } from './shared/utils/timeProvider';
 
 const BoardPage: React.FC<{ onOpenDebug: () => void }> = ({ onOpenDebug }) => {
   const { slugOrId } = useParams<{ slugOrId: string }>();
@@ -27,19 +28,47 @@ const BoardPage: React.FC<{ onOpenDebug: () => void }> = ({ onOpenDebug }) => {
   }, [slugOrId]);
 
   const { lastSyncTime, isOnline, updateSyncTime } = useLastSync();
-  const { settings, saveSettings, loading: settingsLoading } = useBoardSettings(slugOrId, updateSyncTime);
-  const { events, saveEvents, lastRefresh, loading: eventsLoading } = useEvents(slugOrId, updateSyncTime);
-  const { columns, saveColumns, loading: columnsLoading } = useColumns(slugOrId, updateSyncTime);
+  const {
+    settings,
+    saveSettings,
+    loading: settingsLoading,
+    hasLocalCache: settingsHasLocalCache,
+    hasFirestoreSnapshot: settingsHasFirestoreSnapshot,
+  } = useBoardSettings(slugOrId, updateSyncTime);
+  const {
+    events,
+    saveEvents,
+    lastRefresh,
+    loading: eventsLoading,
+    hasLocalCache: eventsHasLocalCache,
+    hasFirestoreSnapshot: eventsHasFirestoreSnapshot,
+  } = useEvents(slugOrId, updateSyncTime);
+  const {
+    columns,
+    saveColumns,
+    loading: columnsLoading,
+    hasLocalCache: columnsHasLocalCache,
+    hasFirestoreSnapshot: columnsHasFirestoreSnapshot,
+  } = useColumns(slugOrId, updateSyncTime);
   const { zmanimData, loading: zmanimLoading, error: zmanimError } = useZmanim(settings);
 
-  const isLoading = slugOrId && (settingsLoading || eventsLoading || columnsLoading);
+  const isLoading = Boolean(slugOrId) && (settingsLoading || eventsLoading || columnsLoading);
+  const hasUsableBoardData = settingsHasLocalCache || settingsHasFirestoreSnapshot || eventsHasLocalCache || eventsHasFirestoreSnapshot || columnsHasLocalCache || columnsHasFirestoreSnapshot;
+  const shouldShowOfflineStartup = Boolean(slugOrId) && !isLoading && !isOnline && !hasUsableBoardData;
 
   const [isClockError, setIsClockError] = useState(false);
 
   useEffect(() => {
     const checkClock = () => {
+      const currentTime = getCurrentTime();
+
+      if (!isCurrentClockPlausible()) {
+        setIsClockError(true);
+        return;
+      }
+
       // 60,000 ms = 1 minute threshold to avoid race condition discrepancies
-      if (lastSyncTime && getCurrentTime().getTime() < lastSyncTime.getTime() - 60000) {
+      if (lastSyncTime && currentTime.getTime() < lastSyncTime.getTime() - 60000) {
         setIsClockError(true);
       } else {
         setIsClockError(false);
@@ -53,6 +82,10 @@ const BoardPage: React.FC<{ onOpenDebug: () => void }> = ({ onOpenDebug }) => {
 
   if (isClockError) {
     return <ClockErrorScreen lastSyncTime={lastSyncTime} onClockSet={() => setIsClockError(false)} />;
+  }
+
+  if (shouldShowOfflineStartup) {
+    return <OfflineStartupScreen lastSyncTime={lastSyncTime} />;
   }
 
   if (isLoading) {

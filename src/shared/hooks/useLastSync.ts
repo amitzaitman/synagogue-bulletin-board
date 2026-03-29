@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { useNetworkState } from 'react-use';
+import { getLastTrustedTime, recordTrustedCurrentTime } from '../utils/timeProvider';
 
 const LAST_SYNC_KEY = 'lastSuccessfulSync';
 
@@ -9,9 +10,13 @@ const LAST_SYNC_KEY = 'lastSuccessfulSync';
  * (i.e. when data actually arrives from the server), not on browser online events.
  */
 export const useLastSync = () => {
-  const [lastSyncTime, setLastSyncTime] = useState<Date>(() => {
+  const [lastSyncTime, setLastSyncTime] = useState<Date | null>(() => {
     const stored = localStorage.getItem(LAST_SYNC_KEY);
-    return stored ? new Date(stored) : new Date();
+    if (stored) {
+      return new Date(stored);
+    }
+
+    return getLastTrustedTime();
   });
 
   const networkState = useNetworkState();
@@ -19,7 +24,7 @@ export const useLastSync = () => {
 
   // Called by data hooks when they receive fresh data from Firestore
   const updateSyncTime = useCallback(() => {
-    const now = new Date();
+    const now = recordTrustedCurrentTime();
     setLastSyncTime(now);
     try {
       localStorage.setItem(LAST_SYNC_KEY, now.toISOString());

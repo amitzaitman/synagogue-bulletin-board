@@ -45,7 +45,7 @@ interface NewBoardLayoutProps {
     zmanimLoading: boolean;
     zmanimError: string | null;
     lastRefresh: Date;
-    lastSyncTime: Date;
+    lastSyncTime: Date | null;
     isOnline: boolean;
     onOpenDebug: () => void;
 }
@@ -358,12 +358,25 @@ const NewBoardLayout: React.FC<NewBoardLayoutProps> = (props) => {
                 <div className="fixed top-0 left-0 p-1 text-[10px] opacity-20 hover:opacity-100 select-none z-50 text-stone-500 pointer-events-auto leading-none" title="Build Version">
                     v{import.meta.env.APP_VERSION}
                 </div>
-                {props.lastSyncTime && (
-                    <div className="fixed top-0 right-0 p-1 flex items-center gap-1 opacity-30 hover:opacity-100 transition-opacity duration-300 select-none z-50 text-stone-500 pointer-events-auto leading-none" title={`סונכרן לאחרונה: ${props.lastSyncTime.toLocaleString('he-IL')}`}>
-                        <span className="w-1.5 h-1.5 rounded-full bg-green-500/50 animate-pulse"></span>
-                        <span className="text-[10px] font-mono">{props.lastSyncTime.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' })}</span>
-                    </div>
-                )}
+                <div
+                    className="fixed top-0 right-0 p-1 flex items-center gap-1 opacity-40 hover:opacity-100 transition-opacity duration-300 select-none z-50 text-stone-500 pointer-events-auto leading-none"
+                    title={
+                        props.lastSyncTime
+                            ? `${props.isOnline ? 'סונכרן לאחרונה' : 'אופליין, סנכרון אחרון'}: ${props.lastSyncTime.toLocaleString('he-IL')}`
+                            : props.isOnline
+                                ? 'מחובר, ממתין לסנכרון ראשון'
+                                : 'אופליין'
+                    }
+                >
+                    <span className={`w-1.5 h-1.5 rounded-full ${props.isOnline ? 'bg-green-500/60 animate-pulse' : 'bg-amber-500/80'}`}></span>
+                    <span className="text-[10px] font-mono">
+                        {props.lastSyncTime
+                            ? props.lastSyncTime.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' })
+                            : props.isOnline
+                                ? 'LIVE'
+                                : 'OFF'}
+                    </span>
+                </div>
 
                 {/* Main Grid */}
                 <main

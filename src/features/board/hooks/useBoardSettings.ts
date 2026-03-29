@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { doc, setDoc } from 'firebase/firestore';
-import { useDocumentData } from 'react-firebase-hooks/firestore';
+import { useDocument } from 'react-firebase-hooks/firestore';
 import { db } from '../../../shared/firebase';
 import isEqual from 'fast-deep-equal';
 import { BoardSettings } from '../../../shared/types/types';
@@ -40,7 +40,13 @@ export const useBoardSettings = (synagogueId: string | undefined, onSync?: () =>
     ? doc(db, `synagogues/${synagogueId}/settings/board`)
     : null;
 
-  const [value, loading, error] = useDocumentData(settingsDocRef);
+  const [snapshot, loading, error] = useDocument(settingsDocRef);
+
+  useEffect(() => {
+    if (snapshot?.exists() && !snapshot.metadata.fromCache && onSync) {
+      onSync();
+    }
+  }, [snapshot, onSync]);
 
   useEffect(() => {
     if (!synagogueId) {
@@ -60,11 +66,8 @@ export const useBoardSettings = (synagogueId: string | undefined, onSync?: () =>
 
     if (loading) return;
 
-    if (value) {
-      // Notify sync occurred
-      if (onSync) onSync();
-
-      const loaded = { ...defaultSettings, ...(value || {}) };
+    if (snapshot?.exists()) {
+      const loaded = { ...defaultSettings, ...(snapshot.data() || {}) };
       // Validate location data, falling back to defaults if invalid
       if (typeof loaded.latitude !== 'number' || typeof loaded.longitude !== 'number' ||
         (loaded.latitude === 0 && loaded.longitude === 0)) {
@@ -88,13 +91,13 @@ export const useBoardSettings = (synagogueId: string | undefined, onSync?: () =>
         }
       }
       setInitialLoadDone(true);
-    } else if (!loading && !value && !hasLocalCache) {
+    } else if (!loading && snapshot && !snapshot.exists() && !hasLocalCache) {
       // Doc doesn't exist on server AND we have no local cache — use defaults
       if (!initialLoadDone) {
         setInitialLoadDone(true);
       }
     }
-  }, [value, loading, error, synagogueId, onSync]);
+  }, [snapshot, loading, error, synagogueId, settings, hasLocalCache, initialLoadDone, showToast]);
 
   const saveSettings = useCallback(async (newSettings: BoardSettings) => {
     if (!synagogueId) {
@@ -127,5 +130,12 @@ export const useBoardSettings = (synagogueId: string | undefined, onSync?: () =>
     }
   }, [synagogueId, settings, showToast]);
 
-  return { settings, saveSettings, loading: loading && isEqual(settings, defaultSettings) && !hasLocalCache };
+  return {
+    settings,
+    saveSettings,
+    loading: loading && isEqual(settings, defaultSettings) && !hasLocalCache,
+    hasLocalCache,
+    hasFirestoreSnapshot: Boolean(snapshot),
+    isUsingCachedSnapshot: Boolean(snapshot?.metadata.fromCache),
+  };
 };

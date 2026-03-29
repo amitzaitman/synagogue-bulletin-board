@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { EventItem } from '../../../shared/types/types';
 import { collection, doc, writeBatch } from 'firebase/firestore';
-import { useCollectionData } from 'react-firebase-hooks/firestore';
+import { useCollection } from 'react-firebase-hooks/firestore';
 import { db } from '../../../shared/firebase';
 import { useToast } from '../../../shared/context';
 import isEqual from 'fast-deep-equal';
@@ -50,7 +50,13 @@ export const useEvents = (synagogueId: string | undefined, onSync?: () => void) 
     ? collection(db, `synagogues/${synagogueId}/events`)
     : null;
 
-  const [value, loading, error] = useCollectionData(eventsCollectionRef);
+  const [snapshot, loading, error] = useCollection(eventsCollectionRef);
+
+  useEffect(() => {
+    if (snapshot && !snapshot.metadata.fromCache && onSync) {
+      onSync();
+    }
+  }, [snapshot, onSync]);
 
   // Update local state when data changes
   useEffect(() => {
@@ -71,11 +77,13 @@ export const useEvents = (synagogueId: string | undefined, onSync?: () => void) 
 
     if (loading) return;
 
-    if (value) {
-      // Notify sync occurred (even if data is unchanged, we successfully contacted server)
-      if (onSync) onSync();
-
-      const sorted = (value as EventItem[]).sort((a, b) => a.order - b.order);
+    if (snapshot) {
+      const sorted = snapshot.docs
+        .map(docSnapshot => ({
+          ...(docSnapshot.data() as EventItem),
+          id: docSnapshot.id,
+        }))
+        .sort((a, b) => a.order - b.order);
 
       // If server data is empty and we have no local data, use defaults
       if (sorted.length === 0 && events.length === 0 && !initialLoadDone) {
@@ -104,7 +112,7 @@ export const useEvents = (synagogueId: string | undefined, onSync?: () => void) 
       }
       setInitialLoadDone(true);
     }
-  }, [value, loading, error, synagogueId, onSync]);
+  }, [snapshot, loading, error, synagogueId, events, initialLoadDone, showToast]);
 
   const saveEvents = useCallback(async (newEvents: EventItem[]) => {
     if (!synagogueId) {
@@ -127,7 +135,7 @@ export const useEvents = (synagogueId: string | undefined, onSync?: () => void) 
       const batch = writeBatch(db);
       const collectionRef = collection(db, `synagogues/${synagogueId}/events`);
 
-      const currentServerIds = new Set(value?.map(e => (e as EventItem).id) || []);
+      const currentServerIds = new Set(snapshot?.docs.map(docSnapshot => docSnapshot.id) || []);
       const newIds = new Set(newEvents.map(e => e.id));
 
       // Updates & Inserts
@@ -150,7 +158,15 @@ export const useEvents = (synagogueId: string | undefined, onSync?: () => void) 
       console.error('[useEvents] Error syncing to Firebase:', error);
       showToast('שגיאה בשמירת הנתונים', 'error');
     }
-  }, [synagogueId, value, showToast]);
+  }, [synagogueId, snapshot, showToast]);
 
-  return { events, saveEvents, lastRefresh: getCurrentTime(), loading: loading && events.length === 0 && !hasLocalCache };
+  return {
+    events,
+    saveEvents,
+    lastRefresh: getCurrentTime(),
+    loading: loading && events.length === 0 && !hasLocalCache,
+    hasLocalCache,
+    hasFirestoreSnapshot: Boolean(snapshot),
+    isUsingCachedSnapshot: Boolean(snapshot?.metadata.fromCache),
+  };
 };

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { doc, writeBatch, collection } from 'firebase/firestore';
-import { useCollectionData } from 'react-firebase-hooks/firestore';
+import { useCollection } from 'react-firebase-hooks/firestore';
 import { db } from '../../../shared/firebase';
 import { Column } from '../../../shared/types/types';
 import { useToast } from '../../../shared/context';
@@ -43,7 +43,13 @@ export const useColumns = (synagogueId: string | undefined, onSync?: () => void)
     ? collection(db, `synagogues/${synagogueId}/columns`)
     : null;
 
-  const [value, loading, error] = useCollectionData(columnsCollectionRef);
+  const [snapshot, loading, error] = useCollection(columnsCollectionRef);
+
+  useEffect(() => {
+    if (snapshot && !snapshot.metadata.fromCache && onSync) {
+      onSync();
+    }
+  }, [snapshot, onSync]);
 
   useEffect(() => {
     if (!synagogueId) {
@@ -63,11 +69,13 @@ export const useColumns = (synagogueId: string | undefined, onSync?: () => void)
 
     if (loading) return;
 
-    if (value) {
-      // Notify sync occurred
-      if (onSync) onSync();
-
-      const sorted = (value as Column[]).sort((a, b) => a.order - b.order);
+    if (snapshot) {
+      const sorted = snapshot.docs
+        .map(docSnapshot => ({
+          ...(docSnapshot.data() as Column),
+          id: docSnapshot.id,
+        }))
+        .sort((a, b) => a.order - b.order);
       // Migration/Default handling: ensure columnType exists
       const withDefaults = sorted.map(col => ({
         ...col,
@@ -96,7 +104,7 @@ export const useColumns = (synagogueId: string | undefined, onSync?: () => void)
       }
       setInitialLoadDone(true);
     }
-  }, [value, loading, error, synagogueId, onSync]);
+  }, [snapshot, loading, error, synagogueId, columns, initialLoadDone, showToast]);
 
   const saveColumns = useCallback(async (newColumns: Column[]) => {
     if (!synagogueId) {
@@ -118,7 +126,7 @@ export const useColumns = (synagogueId: string | undefined, onSync?: () => void)
       const batch = writeBatch(db);
       const collectionRef = collection(db, `synagogues/${synagogueId}/columns`);
 
-      const currentServerIds = new Set(value?.map(c => (c as Column).id) || []);
+      const currentServerIds = new Set(snapshot?.docs.map(docSnapshot => docSnapshot.id) || []);
       const newIds = new Set(newColumns.map(c => c.id));
 
       // Updates & Inserts
@@ -141,7 +149,14 @@ export const useColumns = (synagogueId: string | undefined, onSync?: () => void)
       console.error('[useColumns] Error syncing to Firebase:', err);
       showToast('שגיאה בשמירת הנתונים', 'error');
     }
-  }, [synagogueId, value, showToast]);
+  }, [synagogueId, snapshot, showToast]);
 
-  return { columns, saveColumns, loading: loading && columns.length === 0 && !hasLocalCache };
+  return {
+    columns,
+    saveColumns,
+    loading: loading && columns.length === 0 && !hasLocalCache,
+    hasLocalCache,
+    hasFirestoreSnapshot: Boolean(snapshot),
+    isUsingCachedSnapshot: Boolean(snapshot?.metadata.fromCache),
+  };
 };

@@ -4,21 +4,19 @@ import { db } from '../firebase';
 
 export const useFirestoreNetwork = () => {
     useEffect(() => {
-        const handleOnline = async () => {
+        const enableFirestoreNetwork = async () => {
             try {
-                // Only enable if currently disabled or just to be safe
-                console.info('[Firestore] Network detected online. Enabling Firestore network...');
+                console.info('[Firestore] Enabling Firestore network...');
                 await enableNetwork(db);
                 console.info('[Firestore] Firestore network enabled.');
             } catch (err) {
-                // enableNetwork can fail if already enabled or other issues, usually safe to ignore or log as warn
                 console.warn('[Firestore] Note: Attempt to enable network failed (might already be enabled):', err);
             }
         };
 
-        const handleOffline = async () => {
+        const disableFirestoreNetwork = async () => {
             try {
-                console.info('[Firestore] Network detected offline. Disabling Firestore network to prevent connection errors...');
+                console.info('[Firestore] Disabling Firestore network and using cache-only mode...');
                 await disableNetwork(db);
                 console.info('[Firestore] Firestore network disabled.');
             } catch (err) {
@@ -26,23 +24,32 @@ export const useFirestoreNetwork = () => {
             }
         };
 
-        window.addEventListener('online', handleOnline);
-        window.addEventListener('offline', handleOffline);
+        const syncFirestoreNetwork = async () => {
+            if (navigator.onLine) {
+                await enableFirestoreNetwork();
+            } else {
+                await disableFirestoreNetwork();
+            }
+        };
 
-        // Initial check
-        if (navigator.onLine) {
-            // We don't strictly need to call enableNetwork on init as it's default, 
-            // but if we previously disabled it and it persisted (unlikely without persistence enabled, but possible), 
-            // it's good practice. However, calling it immediately might race with initialization.
-            // Let's just log.
-            console.info('[Firestore] Initial status: Online');
-        } else {
-            handleOffline();
-        }
+        const handleVisibilityChange = () => {
+            if (document.visibilityState === 'visible') {
+                void syncFirestoreNetwork();
+            }
+        };
+
+        window.addEventListener('online', syncFirestoreNetwork);
+        window.addEventListener('offline', syncFirestoreNetwork);
+        window.addEventListener('focus', syncFirestoreNetwork);
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+
+        void syncFirestoreNetwork();
 
         return () => {
-            window.removeEventListener('online', handleOnline);
-            window.removeEventListener('offline', handleOffline);
+            window.removeEventListener('online', syncFirestoreNetwork);
+            window.removeEventListener('offline', syncFirestoreNetwork);
+            window.removeEventListener('focus', syncFirestoreNetwork);
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
         };
     }, []);
 };
