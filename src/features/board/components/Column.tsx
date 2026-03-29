@@ -12,6 +12,7 @@ interface ColumnProps {
     settings: BoardSettings;
     calculatedTimes: Map<string, string>;
     contentScale?: number;
+    showInsertionDividers?: boolean;
     onColumnClick?: () => void;
     onEventClick?: (event: IEventItem) => void;
     onAddEvent?: (columnId: string, order: number) => void;
@@ -19,7 +20,19 @@ interface ColumnProps {
     className?: string;
 }
 
-const Column: React.FC<ColumnProps> = ({ column, events, settings, calculatedTimes, contentScale = 1, onColumnClick, onEventClick, onAddEvent, onEditColumnSettings, className }) => {
+const Column: React.FC<ColumnProps> = ({
+    column,
+    events,
+    settings,
+    calculatedTimes,
+    contentScale = 1,
+    showInsertionDividers = false,
+    onColumnClick,
+    onEventClick,
+    onAddEvent,
+    onEditColumnSettings,
+    className
+}) => {
     const {
         attributes,
         listeners,
@@ -106,8 +119,9 @@ const Column: React.FC<ColumnProps> = ({ column, events, settings, calculatedTim
                                         className={isMessagesColumn ? 'text-center text-lg font-medium py-4' : ''}
                                     />
 
-                                    {/* Divider after each item */}
-                                    <AddEventDivider onClick={() => onAddEvent && onAddEvent(column.id, index + 1)} />
+                                    {showInsertionDividers && onAddEvent && (
+                                        <AddEventDivider onClick={() => onAddEvent(column.id, index + 1)} />
+                                    )}
                                 </React.Fragment>
                             ))}
                         </div>

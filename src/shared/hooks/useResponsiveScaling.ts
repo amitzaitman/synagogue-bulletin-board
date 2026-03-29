@@ -18,8 +18,17 @@ interface ScalingResult {
 
 const DEFAULT_SCALE = 1;
 const MIN_SCALE = 0.1;
-const SCALE_BUFFER = 0.98;
 const OVERFLOW_TOLERANCE = 1.001;
+const SCALE_PRECISION = 0.01;
+const MAX_SEARCH_ITERATIONS = 10;
+
+interface SearchState {
+  active: boolean;
+  low: number;
+  high: number;
+  current: number;
+  iterations: number;
+}
 
 const getOverflowRatio = (element: HTMLElement, axis: 'horizontal' | 'vertical'): number => {
   const visibleSize = axis === 'horizontal' ? element.clientWidth : element.clientHeight;
@@ -44,7 +53,13 @@ export const useResponsiveScaling = ({
 }: UseResponsiveScalingProps): ScalingResult => {
   const [contentScale, setContentScale] = useState(DEFAULT_SCALE);
   const [fontEpoch, setFontEpoch] = useState(0);
-  const pendingResetRef = useRef(false);
+  const searchRef = useRef<SearchState>({
+    active: false,
+    low: 0,
+    high: DEFAULT_SCALE,
+    current: DEFAULT_SCALE,
+    iterations: 0,
+  });
 
   useEffect(() => {
     const fontSet = document.fonts;
@@ -67,7 +82,17 @@ export const useResponsiveScaling = ({
   }, []);
 
   useEffect(() => {
-    pendingResetRef.current = true;
+    searchRef.current = {
+      active: true,
+      low: 0,
+      high: DEFAULT_SCALE,
+      current: DEFAULT_SCALE,
+      iterations: 0,
+    };
+
+    if (contentScale !== DEFAULT_SCALE) {
+      setContentScale(DEFAULT_SCALE);
+    }
   }, [
     containerWidth,
     containerHeight,
@@ -85,50 +110,66 @@ export const useResponsiveScaling = ({
   ]);
 
   useLayoutEffect(() => {
-    if (pendingResetRef.current) {
-      pendingResetRef.current = false;
-
-      if (contentScale !== DEFAULT_SCALE) {
-        setContentScale(DEFAULT_SCALE);
-        return;
-      }
-    }
-
     if (!containerRef.current || containerWidth === 0 || containerHeight === 0) {
       return;
     }
 
-    const overflowSources: number[] = [];
-
     const eventLists = Array.from(
       containerRef.current.querySelectorAll<HTMLElement>('[data-board-column-events]')
     );
-    eventLists.forEach((element) => {
-      overflowSources.push(getOverflowRatio(element, 'vertical'));
-      overflowSources.push(getOverflowRatio(element, 'horizontal'));
-    });
-
-    const footerItems = containerRef.current.querySelector<HTMLElement>('[data-board-footer-items]');
-    if (footerItems) {
-      overflowSources.push(getOverflowRatio(footerItems, 'horizontal'));
-      overflowSources.push(getOverflowRatio(footerItems, 'vertical'));
-    }
-
-    const overflowRatio = Math.max(1, ...overflowSources);
-
-    if (overflowRatio <= OVERFLOW_TOLERANCE) {
-      return;
-    }
-
-    const nextScale = Math.max(
-      MIN_SCALE,
-      Math.min(DEFAULT_SCALE, contentScale / overflowRatio * SCALE_BUFFER)
+    const overflowRatio = Math.max(
+      1,
+      ...eventLists.map((element) => getOverflowRatio(element, 'vertical'))
     );
+    const fits = overflowRatio <= OVERFLOW_TOLERANCE;
+    const search = searchRef.current;
 
-    if (Math.abs(nextScale - contentScale) < 0.002) {
+    if (!search.active) {
       return;
     }
 
+    if (fits) {
+      search.low = search.current;
+    } else {
+      search.high = search.current;
+    }
+
+    search.iterations += 1;
+
+    const searchComplete =
+      search.high - search.low <= SCALE_PRECISION ||
+      search.iterations >= MAX_SEARCH_ITERATIONS ||
+      (search.current <= MIN_SCALE + SCALE_PRECISION && !fits);
+
+    if (searchComplete) {
+      search.active = false;
+      const finalScale = Math.max(MIN_SCALE, Math.min(DEFAULT_SCALE, search.low || MIN_SCALE));
+
+      if (Math.abs(finalScale - contentScale) >= 0.002) {
+        setContentScale(finalScale);
+      }
+
+      return;
+    }
+
+    let nextScale = (search.low + search.high) / 2;
+
+    if (nextScale < MIN_SCALE) {
+      nextScale = MIN_SCALE;
+    }
+
+    if (Math.abs(nextScale - search.current) < 0.002) {
+      search.active = false;
+      const finalScale = Math.max(MIN_SCALE, Math.min(DEFAULT_SCALE, search.low || MIN_SCALE));
+
+      if (Math.abs(finalScale - contentScale) >= 0.002) {
+        setContentScale(finalScale);
+      }
+
+      return;
+    }
+
+    search.current = nextScale;
     setContentScale(nextScale);
   }, [
     containerRef,
@@ -144,8 +185,8 @@ export const useResponsiveScaling = ({
     settings.eventPaddingX,
     settings.eventPaddingY,
     settings.eventTextScale,
-    contentScale,
     fontEpoch,
+    contentScale,
   ]);
 
   return { contentScale };

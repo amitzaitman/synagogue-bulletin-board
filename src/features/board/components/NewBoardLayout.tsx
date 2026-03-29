@@ -448,6 +448,7 @@ const NewBoardLayout: React.FC<NewBoardLayoutProps> = (props) => {
                                             settings={settings}
                                             calculatedTimes={calculatedTimes as Map<string, string>}
                                             contentScale={contentScale}
+                                            showInsertionDividers={props.isEditMode}
                                             onColumnClick={() => handleColumnClick(column.id)}
                                             onEventClick={handleEventClick}
                                             onAddEvent={handleAddEventBetween}
