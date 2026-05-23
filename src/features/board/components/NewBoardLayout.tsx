@@ -3,6 +3,7 @@ import { EventItem, BoardSettings, Column as IColumn, ZmanimData } from '../../.
 import { calculateAllEventTimes } from '../../../shared/utils/timeCalculations';
 import Header from './Header';
 import Column from './Column';
+import { useNetwork } from '../../../shared/context/NetworkContext';
 import { useResponsiveScaling as useScaling } from '../../../shared/hooks/useResponsiveScaling';
 import { LAYOUT_CONSTANTS } from '../../../shared/constants/layout';
 import EditPanel from '../../editor/components/BoardSettingsForm';
@@ -52,6 +53,7 @@ interface NewBoardLayoutProps {
 
 const NewBoardLayout: React.FC<NewBoardLayoutProps> = (props) => {
     const { events, columns, settings, zmanimData } = props;
+    const { isOnline, isManualOffline, toggleManualOffline } = useNetwork();
     const containerRef = useRef<HTMLDivElement>(null);
 
     const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
@@ -359,25 +361,33 @@ const NewBoardLayout: React.FC<NewBoardLayoutProps> = (props) => {
                 <div className="fixed top-0 left-0 p-1 text-[10px] opacity-20 hover:opacity-100 select-none z-50 text-stone-500 pointer-events-auto leading-none" title="Build Version">
                     v{import.meta.env.APP_VERSION}
                 </div>
-                <div
-                    className="fixed top-0 right-0 p-1 flex items-center gap-1 opacity-40 hover:opacity-100 transition-opacity duration-300 select-none z-50 text-stone-500 pointer-events-auto leading-none"
+                <button
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        toggleManualOffline();
+                    }}
+                    className="fixed top-2 right-2 px-2 py-1 flex items-center gap-1.5 opacity-40 hover:opacity-100 hover:bg-stone-500/10 active:scale-95 transition-all duration-300 select-none z-50 text-stone-500 rounded-md cursor-pointer pointer-events-auto leading-none border border-transparent hover:border-stone-500/10"
                     title={
-                        props.lastSyncTime
-                            ? `${props.isOnline ? 'סונכרן לאחרונה' : 'אופליין, סנכרון אחרון'}: ${props.lastSyncTime.toLocaleString('he-IL')}`
-                            : props.isOnline
-                                ? 'מחובר, ממתין לסנכרון ראשון'
-                                : 'אופליין'
+                        isManualOffline
+                            ? 'מצב אופליין ידני פעיל (לחץ לביטול והתחברות)'
+                            : props.lastSyncTime
+                                ? `${isOnline ? 'סונכרן לאחרונה' : 'אופליין, סנכרון אחרון'}: ${props.lastSyncTime.toLocaleString('he-IL')} (לחץ למעבר למצב אופליין)`
+                                : isOnline
+                                    ? 'מחובר, ממתין לסנכרון ראשון (לחץ למעבר למצב אופליין)'
+                                    : 'אופליין (לחץ להתחברות)'
                     }
                 >
-                    <span className={`w-1.5 h-1.5 rounded-full ${props.isOnline ? 'bg-green-500/60 animate-pulse' : 'bg-amber-500/80'}`}></span>
-                    <span className="text-[10px] font-mono">
-                        {props.lastSyncTime
-                            ? props.lastSyncTime.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' })
-                            : props.isOnline
-                                ? 'LIVE'
-                                : 'OFF'}
+                    <span className={`w-1.5 h-1.5 rounded-full ${isOnline ? 'bg-green-500/60 animate-pulse' : 'bg-amber-500/80'}`}></span>
+                    <span className="text-[10px] font-mono font-bold">
+                        {isManualOffline
+                            ? 'OFF (ידני)'
+                            : props.lastSyncTime
+                                ? props.lastSyncTime.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' })
+                                : isOnline
+                                    ? 'LIVE'
+                                    : 'OFF'}
                     </span>
-                </div>
+                </button>
 
                 {/* Main Grid */}
                 <main

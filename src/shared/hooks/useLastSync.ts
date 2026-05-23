@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { useNetworkState } from 'react-use';
+import { useNetwork } from '../context/NetworkContext';
 import { getLastTrustedTime, recordTrustedCurrentTime } from '../utils/timeProvider';
 
 const LAST_SYNC_KEY = 'lastSuccessfulSync';
@@ -19,8 +19,7 @@ export const useLastSync = () => {
     return getLastTrustedTime();
   });
 
-  const networkState = useNetworkState();
-  const isOnline = networkState.online ?? true;
+  const { isOnline } = useNetwork();
 
   // Called by data hooks when they receive fresh data from Firestore
   const updateSyncTime = useCallback(() => {

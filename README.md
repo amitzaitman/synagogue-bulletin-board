@@ -704,6 +704,13 @@ When making ANY changes to this codebase, you MUST update this README. This incl
 
 ## Version History
 
+### v2.3 (2026-05-23) - Unified Network State and Interactive Toggle Override
+- Centralized network status monitoring into a single `NetworkContext` provider, replacing duplicate window listeners and `react-use` `useNetworkState` hooks.
+- Integrated click-to-toggle manual offline simulation in top-right network indicator and offline status banner.
+- Redesigned offline banner in `OnlineStatus.tsx` to automatically dismiss/fade-out after 5 seconds to preserve aesthetic cleanliness on public TVs.
+- Added recovery 'Cancel manual offline' button on the offline startup loading screen.
+- Deleted obsolete `useFirestoreNetwork.ts` file.
+
 ### v2.2 (2026-03-29) - Online/Offline State Hardening
 - Firestore hooks now distinguish cached snapshots from real server syncs
 - Last successful sync is only refreshed from non-cache server data
@@ -743,8 +750,8 @@ When making ANY changes to this codebase, you MUST update this README. This incl
 
 ---
 
-**Last Updated:** 2026-03-29
-**Version:** 2.2
+**Last Updated:** 2026-05-23
+**Version:** 2.3
 **Documentation Status:** ✅ Current
 
 ---

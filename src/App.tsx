@@ -10,7 +10,7 @@ import { useColumns } from './features/board/hooks/useColumns';
 import { useBoardSettings } from './features/board/hooks/useBoardSettings';
 import { useZmanim } from './features/board/hooks/useZmanim';
 import { useLastSync } from './shared/hooks/useLastSync';
-import { useFirestoreNetwork } from './shared/hooks/useFirestoreNetwork';
+import { NetworkProvider } from './shared/context/NetworkContext';
 import LandingPage from './features/landing/components/LandingPage';
 import { saveSelectedSynagogue } from './shared/utils/storage';
 import { getCurrentTime, isCurrentClockPlausible } from './shared/utils/timeProvider';
@@ -128,7 +128,6 @@ const BoardPage: React.FC<{ onOpenDebug: () => void }> = ({ onOpenDebug }) => {
 import { logVersion } from './utils/version';
 
 const App: React.FC = () => {
-  useFirestoreNetwork();
   const [isDebugOpen, setIsDebugOpen] = useState(false);
 
   useEffect(() => {
@@ -136,14 +135,16 @@ const App: React.FC = () => {
   }, []);
 
   return (
-    <Router>
-      <OnlineStatus />
-      <DebugConsole isOpen={isDebugOpen} onClose={() => setIsDebugOpen(false)} />
-      <Routes>
-        <Route path="/:slugOrId" element={<BoardPage onOpenDebug={() => setIsDebugOpen(true)} />} />
-        <Route path="/" element={<LandingPage />} />
-      </Routes>
-    </Router>
+    <NetworkProvider>
+      <Router>
+        <OnlineStatus />
+        <DebugConsole isOpen={isDebugOpen} onClose={() => setIsDebugOpen(false)} />
+        <Routes>
+          <Route path="/:slugOrId" element={<BoardPage onOpenDebug={() => setIsDebugOpen(true)} />} />
+          <Route path="/" element={<LandingPage />} />
+        </Routes>
+      </Router>
+    </NetworkProvider>
   );
 };
 

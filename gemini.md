@@ -698,6 +698,13 @@ When making ANY changes to this codebase, you MUST update this README. This incl
 
 ## Version History
 
+### v2.2 (2026-05-23) - Unified Network Status and Manual Override Toggles
+- Created centralized `NetworkContext` (`NetworkProvider`) replacing individual event listeners and `react-use` `useNetworkState` hooks.
+- Integrated click-to-toggle manual offline simulation in top-right network indicator and offline status banner.
+- Redesigned offline banner in `OnlineStatus.tsx` to automatically dismiss/fade-out after 5 seconds to preserve aesthetic cleanliness on public TVs.
+- Added recovery 'Cancel manual offline' button on the offline startup loading screen.
+- Deleted obsolete `useFirestoreNetwork.ts` file.
+
 ### v2.0 (2025-10-30) - Authentication Simplification
 - Admin authentication isolated to `/manage` screen only
 - Removed `user` annotations from board editing flow
@@ -718,14 +725,14 @@ When making ANY changes to this codebase, you MUST update this README. This incl
 
 ## Contact & Support
 
-- **Firebase Console:** https://console.firebase.google.com
+- **Firebase Console:** https://console.firebase.go.com
 - **Repository:** (your repo URL)
 - **Admin Email:** (your email)
 
 ---
 
-**Last Updated:** 2025-10-30
-**Version:** 2.0
+**Last Updated:** 2026-05-23
+**Version:** 2.2
 **Documentation Status:** ✅ Current
 
 ---
