@@ -33,7 +33,18 @@ const SortableEventItem: React.FC<SortableEventItemProps> = (props) => {
     };
 
     return (
-        <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
+        <div
+            ref={setNodeRef}
+            style={style}
+            {...attributes}
+            {...listeners}
+            onClick={(e) => {
+                if (props.onClick) {
+                    e.stopPropagation();
+                    props.onClick();
+                }
+            }}
+        >
             <EventItem {...props} />
         </div>
     );
