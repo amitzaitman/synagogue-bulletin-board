@@ -698,6 +698,10 @@ When making ANY changes to this codebase, you MUST update this README. This incl
 
 ## Version History
 
+### v2.3 (2026-05-23) - React Performance Optimizations and Zmanim Caching
+- Wrapped core board display components (`EventItem`, `SortableEventItem`, `Column`, `ZmanimFooter`, `BoardMessagesBox`) in `React.memo` to eliminate redundant subtree re-renders during mouse movements, settings timeouts, and drag-and-drop actions.
+- Relocated the specific-date zmanim calculation cache (`dateZmanimCache` in `timeCalculations.ts`) to module-level scope, enabling persistent caching across render frames and eliminating wasteful `@hebcal/core` recalculations.
+
 ### v2.2 (2026-05-23) - Unified Network Status and Manual Override Toggles
 - Created centralized `NetworkContext` (`NetworkProvider`) replacing individual event listeners and `react-use` `useNetworkState` hooks.
 - Integrated click-to-toggle manual offline simulation in top-right network indicator and offline status banner.
@@ -725,14 +729,14 @@ When making ANY changes to this codebase, you MUST update this README. This incl
 
 ## Contact & Support
 
-- **Firebase Console:** https://console.firebase.go.com
+- **Firebase Console:** https://console.firebase.google.com
 - **Repository:** (your repo URL)
 - **Admin Email:** (your email)
 
 ---
 
 **Last Updated:** 2026-05-23
-**Version:** 2.2
+**Version:** 2.3
 **Documentation Status:** ✅ Current
 
 ---

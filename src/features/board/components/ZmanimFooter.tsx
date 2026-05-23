@@ -53,4 +53,4 @@ const ZmanimFooter: React.FC<ZmanimFooterProps> = ({ zmanim, settings }) => {
     );
 };
 
-export default ZmanimFooter;
+export default React.memo(ZmanimFooter);

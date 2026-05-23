@@ -76,4 +76,4 @@ const EventItem: React.FC<EventItemProps> = ({ event, time, settings, isStriped,
     );
 };
 
-export default EventItem;
+export default React.memo(EventItem);

@@ -136,4 +136,4 @@ const Column: React.FC<ColumnProps> = ({
     );
 };
 
-export default Column;
+export default React.memo(Column);

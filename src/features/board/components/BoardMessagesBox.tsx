@@ -47,4 +47,4 @@ const BoardMessagesBox: React.FC<BoardMessagesBoxProps> = ({ settings, scale = 1
     );
 };
 
-export default BoardMessagesBox;
+export default React.memo(BoardMessagesBox);

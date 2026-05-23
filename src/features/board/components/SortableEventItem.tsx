@@ -39,4 +39,4 @@ const SortableEventItem: React.FC<SortableEventItemProps> = (props) => {
     );
 };
 
-export default SortableEventItem;
+export default React.memo(SortableEventItem);

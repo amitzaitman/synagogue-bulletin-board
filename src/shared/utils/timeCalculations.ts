@@ -59,6 +59,9 @@ export const calculateZmanimForDate = (dateStr: string, settings: BoardSettings)
     }
 };
 
+// Persistent cache for date-specific zmanim calculations across renders
+const dateZmanimCache = new Map<string, DateSpecificZmanim | null>();
+
 export const calculateAllEventTimes = (
     events: EventItem[],
     columns: Column[],
@@ -68,9 +71,6 @@ export const calculateAllEventTimes = (
     const eventsById = new Map(events.map(e => [e.id, e]));
     const columnsById = new Map(columns.map(c => [c.id, c]));
     const calculatedTimes = new Map<string, string | null>();
-
-    // Cache for date-specific zmanim calculations
-    const dateZmanimCache = new Map<string, DateSpecificZmanim | null>();
 
     const calculateTime = (eventId: string, visited: Set<string> = new Set()): Date | null => {
         if (calculatedTimes.has(eventId)) {
