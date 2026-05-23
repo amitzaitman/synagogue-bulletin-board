@@ -35,18 +35,23 @@ const ZmanimFooter: React.FC<ZmanimFooterProps> = ({ zmanim, settings }) => {
 
     return (
         <div
-            className="bg-brand-dark text-white py-1 px-2 border-t border-white/10 shadow-lg z-10 w-full"
-            style={{ backgroundColor: settings.zmanimBackgroundColor }}
+            className="text-white py-2.5 px-6 border-t border-white/10 shadow-lg z-10 w-full select-none"
+            style={{ backgroundColor: settings.zmanimBackgroundColor || '#1e3a5f' }}
         >
             <div
-                className="flex flex-wrap justify-center items-center gap-x-4 gap-y-1 w-full"
+                className="flex justify-between items-center w-full flex-nowrap gap-2"
                 data-board-footer-items
             >
                 {footerItems.map((item, index) => (
-                    <div key={index} className="flex items-center gap-1 whitespace-nowrap">
-                        <span className="text-blue-200 text-[min(14px,1vw)]">{item.label}:</span>
-                        <span className="font-medium text-[min(14px,1vw)]">{item.time}</span>
-                    </div>
+                    <React.Fragment key={index}>
+                        {index > 0 && (
+                            <div className="h-4 w-[1px] bg-white/15 self-center shrink-0" />
+                        )}
+                        <div className="flex items-center gap-1.5 whitespace-nowrap justify-center flex-1 min-w-0">
+                            <span className="text-white/70 font-semibold text-[clamp(11px,0.85vw,16px)]">{item.label}:</span>
+                            <span className="text-white font-extrabold font-mono tracking-wider text-[clamp(13px,1vw,20px)]">{item.time}</span>
+                        </div>
+                    </React.Fragment>
                 ))}
             </div>
         </div>
