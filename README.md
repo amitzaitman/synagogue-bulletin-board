@@ -704,11 +704,10 @@ When making ANY changes to this codebase, you MUST update this README. This incl
 
 ## Version History
 
-### v2.8 (2026-05-23) - Clickable Column Headers & Secured View Mode
-- Enabled clicking on any column header in edit mode to instantly open its Column Settings Form, providing a highly intuitive editing workflow.
-- Added visual indicators for the new clickable header (pointer cursor and hover brightness transition) while in edit mode.
-- Completely locked down and secured the public view-only mode: disabled column and event drag-and-drop (`useSortable`), and removed pointer cursors, hover border highlights, insertion dividers, and drag listeners.
-- Conditionally passed all edit handlers (`onColumnClick`, `onEventClick`, `onAddEvent`, `onEditColumnSettings`) in `NewBoardLayout.tsx` only when `isEditMode` is true.
+### v2.8 (2026-05-23) - Clickable Column Headers
+- Enabled clicking on any column header to instantly open its Column Settings Form, providing a highly intuitive editing workflow.
+- Added visual indicators for the new clickable header (hover brightness transition and pointer cursor) to indicate clickability.
+- Maintained all existing reordering, dragging, and hovering capabilities in the default board viewing mode.
 
 ### v2.7 (2026-05-23) - Full-Width Responsive Single-Line Zmanim Footer
 - Redesigned the `ZmanimFooter` component to occupy exactly the full width of the bottom of the page in a single, non-wrapping line (`flex-nowrap justify-between`).

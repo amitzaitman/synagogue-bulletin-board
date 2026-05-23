@@ -40,7 +40,7 @@ const Column: React.FC<ColumnProps> = ({
         transform,
         transition,
         isDragging,
-    } = useSortable({ id: column.id, disabled: !showInsertionDividers });
+    } = useSortable({ id: column.id });
 
     const style = {
         transform: CSS.Transform.toString(transform),
@@ -55,38 +55,34 @@ const Column: React.FC<ColumnProps> = ({
         <div
             ref={setNodeRef}
             style={style}
-            className={`flex flex-col h-full rounded-lg shadow-lg overflow-hidden border border-gray-200 transition-colors ${onColumnClick && !isDragging ? 'hover:border-brand-accent cursor-pointer' : ''} ${className || ''}`}
+            className={`flex flex-col h-full rounded-lg shadow-lg overflow-hidden border border-gray-200 transition-colors ${!isDragging ? 'hover:border-brand-accent' : ''} ${className || ''}`}
             onClick={onColumnClick}
         >
             {/* Column Header */}
             <div
-                className={`bg-brand-dark text-white text-center relative group transition-all duration-200 ${showInsertionDividers ? 'cursor-pointer hover:brightness-110' : ''}`}
+                className={`bg-brand-dark text-white text-center relative group cursor-grab active:cursor-grabbing hover:brightness-110 transition-all duration-200`}
                 style={{ padding: `${LAYOUT_CONSTANTS.COLUMN.HEADER_PADDING_Y_PX * contentScale}px ${LAYOUT_CONSTANTS.COLUMN.HEADER_PADDING_X_PX * contentScale}px` }} // py-3 px-4 scaled
                 {...attributes}
                 {...listeners}
                 onClick={(e) => {
-                    if (showInsertionDividers) {
-                        e.stopPropagation();
-                        if (onEditColumnSettings) onEditColumnSettings();
-                    }
+                    e.stopPropagation();
+                    if (onEditColumnSettings) onEditColumnSettings();
                 }}
             >
                 {/* Settings Button (visible on hover) */}
-                {showInsertionDividers && (
-                    <button
-                        className="absolute top-1 right-1 p-1 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white/20 rounded"
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            if (onEditColumnSettings) onEditColumnSettings();
-                        }}
-                        onPointerDown={(e) => e.stopPropagation()} // Prevent drag start
-                    >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                        </svg>
-                    </button>
-                )}
+                <button
+                    className="absolute top-1 right-1 p-1 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white/20 rounded"
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        if (onEditColumnSettings) onEditColumnSettings();
+                    }}
+                    onPointerDown={(e) => e.stopPropagation()} // Prevent drag start
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                </button>
 
                 <h2
                     className="select-none whitespace-normal break-words leading-tight"
