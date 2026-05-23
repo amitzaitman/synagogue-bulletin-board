@@ -698,6 +698,17 @@ When making ANY changes to this codebase, you MUST update this README. This incl
 
 ## Version History
 
+### v2.8 (2026-05-23) - Clickable Column Headers & Secured View Mode
+- Enabled clicking on any column header in edit mode to instantly open its Column Settings Form, providing a highly intuitive editing workflow.
+- Added visual indicators for the new clickable header (pointer cursor and hover brightness transition) while in edit mode.
+- Completely locked down and secured the public view-only mode: disabled column and event drag-and-drop (`useSortable`), and removed pointer cursors, hover border highlights, insertion dividers, and drag listeners.
+- Conditionally passed all edit handlers (`onColumnClick`, `onEventClick`, `onAddEvent`, `onEditColumnSettings`) in `NewBoardLayout.tsx` only when `isEditMode` is true.
+
+### v2.7 (2026-05-23) - Full-Width Responsive Single-Line Zmanim Footer
+- Redesigned the `ZmanimFooter` component to occupy exactly the full width of the bottom of the page in a single, non-wrapping line (`flex-nowrap justify-between`).
+- Integrated elegant vertical dividers (`bg-white/15`) between zmanim items for a premium, clean aesthetic.
+- Implemented responsive, clamped font sizes (`clamp()`) for labels and times, ensuring they scale naturally on ultra-wide screens without overflow or wrapping on standard/narrow displays.
+
 ### v2.6 (2026-05-23) - Transactional Board Settings Saving and Local Preview Drafts
 - Redesigned the settings editing workflow to make saving transactional—writing to Firestore and localStorage ONLY upon clicking "סגור ושמור" (Close and Save) instead of autosaving on every keystroke.
 - Implemented a local `draftSettings` state inside `NewBoardLayout` when `isEditMode` is active to maintain a responsive live preview in the background while eliminating database write spam and cursor jumps.
@@ -744,7 +755,7 @@ When making ANY changes to this codebase, you MUST update this README. This incl
 ---
 
 **Last Updated:** 2026-05-23
-**Version:** 2.6
+**Version:** 2.7
 **Documentation Status:** ✅ Current
 
 ---

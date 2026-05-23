@@ -23,7 +23,7 @@ const SortableEventItem: React.FC<SortableEventItemProps> = (props) => {
         transform,
         transition,
         isDragging,
-    } = useSortable({ id: props.event.id });
+    } = useSortable({ id: props.event.id, disabled: !props.onClick });
 
     const style = {
         transform: CSS.Transform.toString(transform),

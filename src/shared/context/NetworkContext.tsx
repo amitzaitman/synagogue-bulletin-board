@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { disableNetwork, enableNetwork } from 'firebase/firestore';
 import { db } from '../firebase';
 
@@ -22,6 +22,8 @@ export const NetworkProvider: React.FC<{ children: React.ReactNode }> = ({ child
             return false;
         }
     });
+
+    const isFirstRender = useRef(true);
 
     useEffect(() => {
         const handleOnline = () => setActualOnline(true);
@@ -54,6 +56,17 @@ export const NetworkProvider: React.FC<{ children: React.ReactNode }> = ({ child
     // Keep Firestore network in sync with the effective connection state
     useEffect(() => {
         const syncFirestore = async () => {
+            // Avoid calling enableNetwork on the very first mount if the app is online,
+            // as Firestore is online by default. This prevents a race condition (Target ID already exists)
+            // with concurrent initial queries.
+            if (isFirstRender.current) {
+                isFirstRender.current = false;
+                if (isOnline) {
+                    console.info('[Firestore] App is online on startup. Skipping redundant enableNetwork.');
+                    return;
+                }
+            }
+
             if (isOnline) {
                 try {
                     console.info('[Firestore] Enabling Firestore network...');

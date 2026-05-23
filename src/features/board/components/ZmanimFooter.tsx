@@ -35,11 +35,11 @@ const ZmanimFooter: React.FC<ZmanimFooterProps> = ({ zmanim, settings }) => {
 
     return (
         <div
-            className="text-white py-2.5 px-6 border-t border-white/10 shadow-lg z-10 w-full select-none"
+            className="text-white py-2.5 px-[clamp(8px,1.5vw,24px)] border-t border-white/10 shadow-lg z-10 w-full select-none"
             style={{ backgroundColor: settings.zmanimBackgroundColor || '#1e3a5f' }}
         >
             <div
-                className="flex justify-between items-center w-full flex-nowrap gap-2"
+                className="flex justify-between items-center w-full flex-nowrap gap-x-[clamp(4px,0.5vw,16px)] gap-y-1"
                 data-board-footer-items
             >
                 {footerItems.map((item, index) => (
@@ -47,9 +47,9 @@ const ZmanimFooter: React.FC<ZmanimFooterProps> = ({ zmanim, settings }) => {
                         {index > 0 && (
                             <div className="h-4 w-[1px] bg-white/15 self-center shrink-0" />
                         )}
-                        <div className="flex items-center gap-1.5 whitespace-nowrap justify-center flex-1 min-w-0">
-                            <span className="text-white/70 font-semibold text-[clamp(11px,0.85vw,16px)]">{item.label}:</span>
-                            <span className="text-white font-extrabold font-mono tracking-wider text-[clamp(13px,1vw,20px)]">{item.time}</span>
+                        <div className="flex items-center whitespace-nowrap justify-center shrink-0 text-[clamp(8px,0.8vw,16px)]">
+                            <span className="text-white/70 font-semibold">{item.label}:&nbsp;</span>
+                            <span className="text-white font-extrabold font-mono tracking-wider">{item.time}</span>
                         </div>
                     </React.Fragment>
                 ))}
