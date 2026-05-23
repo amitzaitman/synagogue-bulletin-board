@@ -704,6 +704,9 @@ When making ANY changes to this codebase, you MUST update this README. This incl
 
 ## Version History
 
+### v2.5 (2026-05-23) - Resolved Synagogue Creation Permission Issue
+- Modified `firestore.rules` to allow public creation (`allow create: if true`) of synagogue documents, resolving the `PERMISSION_DENIED` issue when users attempt to create new communities from the landing page.
+
 ### v2.4 (2026-05-23) - React Performance Optimizations and Zmanim Caching
 - Wrapped core board display components (`EventItem`, `SortableEventItem`, `Column`, `ZmanimFooter`, `BoardMessagesBox`) in `React.memo` to eliminate redundant subtree re-renders during mouse movements, settings timeouts, and drag-and-drop actions.
 - Relocated the specific-date zmanim calculation cache (`dateZmanimCache` in `timeCalculations.ts`) to module-level scope, enabling persistent caching across render frames and eliminating wasteful `@hebcal/core` recalculations.
@@ -755,7 +758,7 @@ When making ANY changes to this codebase, you MUST update this README. This incl
 ---
 
 **Last Updated:** 2026-05-23
-**Version:** 2.4
+**Version:** 2.5
 **Documentation Status:** ✅ Current
 
 ---

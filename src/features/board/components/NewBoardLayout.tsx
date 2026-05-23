@@ -56,6 +56,31 @@ const NewBoardLayout: React.FC<NewBoardLayoutProps> = (props) => {
     const { isOnline, isManualOffline, toggleManualOffline } = useNetwork();
     const containerRef = useRef<HTMLDivElement>(null);
 
+    // Draft Settings state (used to keep edits local until saving)
+    const [draftSettings, setDraftSettings] = useState<BoardSettings | null>(null);
+
+    // Sync draftSettings when entering edit mode
+    useEffect(() => {
+        if (props.isEditMode) {
+            setDraftSettings(settings);
+        } else {
+            setDraftSettings(null);
+        }
+    }, [props.isEditMode, settings]);
+
+    const activeSettings = (props.isEditMode && draftSettings) ? draftSettings : settings;
+
+    const handleDraftSettingsChange = (newSettings: BoardSettings) => {
+        setDraftSettings(newSettings);
+    };
+
+    const handleSaveChanges = () => {
+        if (draftSettings) {
+            props.saveSettings(draftSettings);
+        }
+        props.onSaveChanges();
+    };
+
     const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
 
     // Event Editing State
@@ -239,13 +264,13 @@ const NewBoardLayout: React.FC<NewBoardLayoutProps> = (props) => {
         footerHeight,
         columns,
         events,
-        settings
+        settings: activeSettings
     });
 
     // Calculate times for all events
     const calculatedTimes = useMemo(() =>
-        calculateAllEventTimes(events, columns, zmanimData, settings),
-        [events, columns, zmanimData, settings]
+        calculateAllEventTimes(events, columns, zmanimData, activeSettings),
+        [events, columns, zmanimData, activeSettings]
     );
 
     // Sort columns by order
@@ -351,10 +376,10 @@ const NewBoardLayout: React.FC<NewBoardLayoutProps> = (props) => {
 
     return (
         <LandscapeEnforcer allowPortrait={props.isEditMode || editingEventState.isOpen || editingColumnSettings.isOpen}>
-            <div ref={containerRef} className="h-full w-full flex flex-col overflow-hidden font-sans relative" style={{ backgroundColor: settings.mainBackgroundColor }}>
+            <div ref={containerRef} className="h-full w-full flex flex-col overflow-hidden font-sans relative" style={{ backgroundColor: activeSettings.mainBackgroundColor }}>
                 {/* Header */}
                 <div ref={headerRef}>
-                    <Header settings={settings} zmanimData={zmanimData} />
+                    <Header settings={activeSettings} zmanimData={zmanimData} />
                 </div>
 
                 {/* Fixed Metadata (Top Corners) */}
@@ -394,7 +419,7 @@ const NewBoardLayout: React.FC<NewBoardLayoutProps> = (props) => {
                     className="flex-1 overflow-hidden"
                     style={{
                         padding: `${LAYOUT_CONSTANTS.GRID.PADDING_PX * contentScale}px`,
-                        backgroundColor: settings.boardBackgroundColor
+                        backgroundColor: activeSettings.boardBackgroundColor
                     }}
                 >
                     <DndContext
@@ -406,7 +431,7 @@ const NewBoardLayout: React.FC<NewBoardLayoutProps> = (props) => {
                         <SortableContext items={sortedColumns.map(c => c.id)} strategy={horizontalListSortingStrategy}>
                             <div className="h-full flex flex-col w-full">
                                 <BoardMessagesBox
-                                    settings={settings}
+                                    settings={activeSettings}
                                     scale={contentScale}
                                     onClick={() => {
                                         setActiveSettingsSection('messages');
@@ -415,7 +440,7 @@ const NewBoardLayout: React.FC<NewBoardLayoutProps> = (props) => {
                                 />
 
                                 {/* Invisible spacer for adding messages if none exist */}
-                                {(!settings.boardMessages || settings.boardMessages.trim() === '') && (
+                                {(!activeSettings.boardMessages || activeSettings.boardMessages.trim() === '') && (
                                     <div
                                         className="w-full relative group cursor-pointer z-10 flex items-center justify-center"
                                         style={{
@@ -455,7 +480,7 @@ const NewBoardLayout: React.FC<NewBoardLayoutProps> = (props) => {
                                             key={column.id}
                                             column={column}
                                             events={events.filter(e => e.columnId === column.id).sort((a, b) => a.order - b.order)}
-                                            settings={settings}
+                                            settings={activeSettings}
                                             calculatedTimes={calculatedTimes as Map<string, string>}
                                             contentScale={contentScale}
                                             showInsertionDividers={props.isEditMode}
@@ -481,7 +506,7 @@ const NewBoardLayout: React.FC<NewBoardLayoutProps> = (props) => {
                                 <EventItemComponent
                                     event={activeEvent}
                                     time={calculatedTimes.get(activeEvent.id) ?? null}
-                                    settings={settings}
+                                    settings={activeSettings}
                                     isStriped={false}
                                     scale={contentScale}
                                 />
@@ -490,7 +515,7 @@ const NewBoardLayout: React.FC<NewBoardLayoutProps> = (props) => {
                                     <Column
                                         column={activeColumn}
                                         events={events.filter(e => e.columnId === activeColumn.id).sort((a, b) => a.order - b.order)}
-                                        settings={settings}
+                                        settings={activeSettings}
                                         calculatedTimes={calculatedTimes as Map<string, string>}
                                         contentScale={contentScale}
                                         className="h-full bg-white shadow-2xl"
@@ -503,7 +528,7 @@ const NewBoardLayout: React.FC<NewBoardLayoutProps> = (props) => {
 
                 {/* Zmanim Footer */}
                 < div ref={footerRef} >
-                    <ZmanimFooter zmanim={zmanimData} settings={settings} />
+                    <ZmanimFooter zmanim={zmanimData} settings={activeSettings} />
                 </div >
 
                 {/* Controls (Bottom Left) */}
@@ -570,7 +595,7 @@ const NewBoardLayout: React.FC<NewBoardLayoutProps> = (props) => {
                                             הוסף עמודה
                                         </button>
                                         <button
-                                            onClick={props.onSaveChanges}
+                                            onClick={handleSaveChanges}
                                             className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition-colors font-medium"
                                         >
                                             סגור ושמור
@@ -579,8 +604,8 @@ const NewBoardLayout: React.FC<NewBoardLayoutProps> = (props) => {
                                 </div>
                                 <div className="flex-1 overflow-hidden relative">
                                     <EditPanel
-                                        settings={settings}
-                                        onSave={props.saveSettings}
+                                        settings={activeSettings}
+                                        onSave={handleDraftSettingsChange}
                                         zmanimData={zmanimData}
                                         zmanimLoading={props.zmanimLoading}
                                         zmanimError={props.zmanimError}

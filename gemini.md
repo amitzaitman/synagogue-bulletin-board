@@ -698,12 +698,20 @@ When making ANY changes to this codebase, you MUST update this README. This incl
 
 ## Version History
 
-### v2.3 (2026-05-23) - React Performance Optimizations and Zmanim Caching
+### v2.6 (2026-05-23) - Transactional Board Settings Saving and Local Preview Drafts
+- Redesigned the settings editing workflow to make saving transactional—writing to Firestore and localStorage ONLY upon clicking "סגור ושמור" (Close and Save) instead of autosaving on every keystroke.
+- Implemented a local `draftSettings` state inside `NewBoardLayout` when `isEditMode` is active to maintain a responsive live preview in the background while eliminating database write spam and cursor jumps.
+- Reverted the debounced `saveSettings` hook back to simple, immediate Firestore updates upon explicit user save actions.
+
+### v2.5 (2026-05-23) - Resolved Synagogue Creation Permission Issue
+- Modified `firestore.rules` to allow public creation (`allow create: if true`) of synagogue documents, resolving the `PERMISSION_DENIED` issue when users attempt to create new communities from the landing page.
+
+### v2.4 (2026-05-23) - React Performance Optimizations and Zmanim Caching
 - Wrapped core board display components (`EventItem`, `SortableEventItem`, `Column`, `ZmanimFooter`, `BoardMessagesBox`) in `React.memo` to eliminate redundant subtree re-renders during mouse movements, settings timeouts, and drag-and-drop actions.
 - Relocated the specific-date zmanim calculation cache (`dateZmanimCache` in `timeCalculations.ts`) to module-level scope, enabling persistent caching across render frames and eliminating wasteful `@hebcal/core` recalculations.
 
-### v2.2 (2026-05-23) - Unified Network Status and Manual Override Toggles
-- Created centralized `NetworkContext` (`NetworkProvider`) replacing individual event listeners and `react-use` `useNetworkState` hooks.
+### v2.3 (2026-05-23) - Unified Network State and Interactive Toggle Override
+- Centralized network status monitoring into a single `NetworkContext` provider, replacing duplicate window listeners and `react-use` `useNetworkState` hooks.
 - Integrated click-to-toggle manual offline simulation in top-right network indicator and offline status banner.
 - Redesigned offline banner in `OnlineStatus.tsx` to automatically dismiss/fade-out after 5 seconds to preserve aesthetic cleanliness on public TVs.
 - Added recovery 'Cancel manual offline' button on the offline startup loading screen.
@@ -736,7 +744,7 @@ When making ANY changes to this codebase, you MUST update this README. This incl
 ---
 
 **Last Updated:** 2026-05-23
-**Version:** 2.3
+**Version:** 2.6
 **Documentation Status:** ✅ Current
 
 ---
